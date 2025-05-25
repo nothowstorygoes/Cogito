@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { autoUpdater } = require("electron-updater");
+const { dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -216,6 +217,16 @@ ipcMain.on('renderer-ready', () => {
     mainWindow.webContents.send('session-result', pendingSessionResult);
     pendingSessionResult = null;
   }
+});
+
+ipcMain.handle("show-save-dialog", async (event, options) => {
+  const result = await dialog.showSaveDialog(options);
+  return result.canceled ? null : result.filePath;
+});
+
+ipcMain.handle("save-file", async (event, { filePath, content }) => {
+  fs.writeFileSync(filePath, content, "utf-8");
+  return true;
 });
 
 autoUpdater.on('update-available', () => {

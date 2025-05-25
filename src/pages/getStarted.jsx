@@ -58,6 +58,7 @@ export default function GetStarted() {
             average: 0,
             goalReached: 0,
             grandTotal: 0,
+            dark: false,
             propic: ""
         });
         let date = new Date().toLocaleDateString();

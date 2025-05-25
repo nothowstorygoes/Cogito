@@ -1,17 +1,17 @@
-import TitleBar from "../components/TitleBar"
+import TitleBar from "../components/TitleBar";
 import { useEffect, useState } from "react";
 import { Line } from 'react-chartjs-2';
 import { useNavigate } from "react-router-dom";
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js';
+import { useTheme } from "../components/themeProvider";
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
-
- 
 
 export default function InDepth() {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
     const navigate = useNavigate();
+    const { dark } = useTheme();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -45,8 +45,8 @@ export default function InDepth() {
                     label: "Time",
                     data: values,
                     fill: true,
-                    backgroundColor: "rgba(99,49,201,0.2)",
-                    borderColor: "#6331c9",
+                    backgroundColor: dark ? "rgba(210,214,239,0.2)" : "rgba(99,49,201,0.2)",
+                    borderColor: dark ? "#D2D6EF" : "#6331c9",
                     tension: 0.4,
                 }
             ]
@@ -78,12 +78,12 @@ export default function InDepth() {
             y: {
                 beginAtZero: true,
                 ticks: {
-                    color: "#6331c9"
+                    color: dark ? "#D2D6EF" : "#6331c9"
                 }
             },
             x: {
                 ticks: {
-                    color: "#6331c9",
+                    color: dark ? "#D2D6EF" : "#6331c9",
                     display: false
                 }
             }
@@ -91,12 +91,12 @@ export default function InDepth() {
     };
 
     return (
-        <main className="w-screen h-screen bg-[#D2D6EF] flex flex-col items-center">
+        <main className={`w-screen h-screen flex flex-col items-center transition-colors duration-300 ${dark ? "bg-[#181825]" : "bg-[#D2D6EF]"}`}>
             <TitleBar />
             {loading ? (
-                <h2>Loading...</h2>
+                <h2 className={`mt-10 text-xl ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}>Loading...</h2>
             ) : (
-                <div className="mt-10 text-xl flex flex-col justify-center items-center text-[#6331c9]">
+                <div className={`mt-10 text-xl flex flex-col justify-center items-center ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}>
                     <h2 className="font-bold">In Depth</h2>
                     <p className="text-center w-100 text-sm mt-5">The graph reflects your performance across all time.</p>
                     <div className="w-110 h-50 px-6 flex items-center justify-center">
@@ -106,15 +106,24 @@ export default function InDepth() {
                             <p>No data available</p>
                         )}
                     </div>
-                    <p className="mt-4 text-base text-[#6331c9] w-full px-12">
+                    <p className={`mt-4 text-base w-full px-12 ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}>
                         On the <b>{maxDate}</b> you recorded <br/> your longest session! &nbsp; <b>({maxTime}h)</b><br />
                         <br/>
-                        You have spent a total of <b>{daysSpent} days</b> <br/>focusing on what's important to you.<br /><br/>
-                        <b>{aboveAveragePercent}%</b> of your days were above average.<br/>
+                        You spent a total of <b>{daysSpent} days</b> <br/>focusing on what's important to you.<br /><br/>
+                        <b>{aboveAveragePercent}%</b> of your sessions were above average.<br/>
                     </p>
                 </div>
             )}
-            <button onClick={() => navigate("/statistics")} className="absolute top-132 right-10 bg-[#6331c9] w-30 text-white rounded-2xl h-10 hover:w-45 transition-all duration-300 cursor-pointer">Go Back</button>
+            <button
+                onClick={() => navigate("/statistics")}
+                className={`absolute top-132 right-10 w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer
+                    ${dark
+                        ? "bg-[#D2D6EF] text-[#181825] border border-[#D2D6EF] hover:bg-[#b8bce0]"
+                        : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
+                    } hover:w-45`}
+            >
+                Go Back
+            </button>
         </main>
     )
 }
