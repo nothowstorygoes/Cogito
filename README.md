@@ -1,6 +1,8 @@
-<div align="center"> <img src="https://github.com/user-attachments/assets/0463e7dd-c742-4ec8-a084-a2ee66d7bb3f"> </div>
-<h1 align="center">Cogito</h1>
+<div align="center"> 
+  <img src="https://github.com/user-attachments/assets/0463e7dd-c742-4ec8-a084-a2ee66d7bb3f"> 
+</div>
 
+<h1 align="center">Cogito</h1>
 
 ![Version](https://img.shields.io/badge/version-1.1.0-blue)
 
@@ -16,7 +18,9 @@ Main features include:
 - ⏱️ Built-in stopwatch to track work/study sessions;
 - 📈 Daily-based statistics and summaries;
 - 📅 A full daily log of all recorded sessions;
-- 📥 Ability to import data from a `.json` file in a supported format.
+- 📥 Ability to import data from a `.json` file in a supported format;
+- 🌙 **NEW:** Dark mode support for a more comfortable night-time experience;
+- 💾 **NEW:** Export your data to a `.json` file for backup or transfer.
 
 ---
 
@@ -35,3 +39,4 @@ and follow the setup instructions to install the app on your system.
 2. Use the stopwatch to record your sessions.
 3. Explore the daily log and analyze your statistics.
 4. If you have existing data, use the import function to load a `.json` file.
+5. Use the export feature to save a backup of your data at any time.
