@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
+const { autoUpdater } = require("electron-updater");
 const path = require('path');
 const fs = require('fs');
 
@@ -217,12 +218,24 @@ ipcMain.on('renderer-ready', () => {
   }
 });
 
+autoUpdater.on('update-available', () => {
+  console.log('[AutoUpdater] Update available');
+});
+autoUpdater.on('update-downloaded', () => {
+  console.log('[AutoUpdater] Update downloaded, will install on quit');
+});
+autoUpdater.on('error', (err) => {
+  console.error('[AutoUpdater] Error:', err);
+});
+
 // --- App Lifecycle ---
 console.log('[Main] Setting up app lifecycle events');
 
 app.whenReady().then(() => {
   console.log('[Main] App is ready, creating window');
   createWindow("/");
+    // Avvia la ricerca di aggiornamenti
+  autoUpdater.checkForUpdatesAndNotify();
 });
 
 app.on('window-all-closed', () => {
