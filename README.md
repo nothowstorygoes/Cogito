@@ -1,12 +1,37 @@
-# React + Vite
+<div align="center"> <img src="https://github.com/user-attachments/assets/0463e7dd-c742-4ec8-a084-a2ee66d7bb3f"> </div>
+<h1 align="center">Cogito</h1>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+> 🎉 **Release 1.0.0 is now available** — the **first official version** of the app!
 
-## Expanding the ESLint configuration
+## Description
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+**Cogito** is a small desktop application built with **Vite**, **React**, and **Electron**.  
+Its purpose is to help you **track the time you spend** on various activities throughout your days.
+
+Main features include:
+
+- ⏱️ Built-in stopwatch to track work/study sessions;
+- 📈 Daily-based statistics and summaries;
+- 📅 A full daily log of all recorded sessions;
+- 📥 Ability to import data from a `.json` file in a supported format.
+
+---
+
+## Installation
+
+No manual dependency installation required.
+
+👉 **Download the installer** from the [Releases](https://github.com/<your-username>/<repo-name>/releases) section of this repository  
+and follow the setup instructions to install the app on your system.
+
+---
+
+## Usage
+
+1. Launch the installed application.
+2. Use the stopwatch to record your sessions.
+3. Explore the daily log and analyze your statistics.
+4. If you have existing data, use the import function to load a `.json` file.
