@@ -24,7 +24,7 @@ Main features include:
 
 No manual dependency installation required.
 
-👉 **Download the installer** from the [Releases](https://github.com/<your-username>/<repo-name>/releases) section of this repository  
+👉 **Download the installer** from the [Releases](https://github.com/nothowstorygoes/cogito/releases) section of this repository  
 and follow the setup instructions to install the app on your system.
 
 ---
