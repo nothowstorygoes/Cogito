@@ -2,9 +2,9 @@
 <h1 align="center">Cogito</h1>
 
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 
-> 🎉 **Release 1.0.2 is now available** 
+> 🎉 **Release 1.1.0 is now available** 
 
 ## Description
 
