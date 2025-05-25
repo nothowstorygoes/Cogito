@@ -1,11 +1,17 @@
-import React, { useEffect } from "react";
+import React, { useEffect , useState} from "react";
 import TitleBar from "../components/TitleBar";
 import { useNavigate } from "react-router-dom";
+ 
 import Vara from "vara";
 
 export default function Landing() {
   const navigate = useNavigate();
   useEffect(() => {
+    window.electron.invoke("get-onboarding-data").then((res) => {
+      if(res) {
+        navigate("/home");
+      }
+    });
     const container = document.getElementById("vara-title");
     if (container) container.innerHTML = "";
     new Vara(

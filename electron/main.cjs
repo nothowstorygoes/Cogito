@@ -2,54 +2,251 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-function getDataPath() {
-  return path.join(app.getPath('userData'), 'cogito-data.json');
-}
+// Debug all'inizio
+console.log('[Main] Starting Electron app...');
+console.log('[Main] __dirname:', __dirname);
+console.log('[Main] app.isPackaged:', app.isPackaged);
 
-// Handle reading app data
-ipcMain.handle('get-app-data', () => {
-  const filePath = getDataPath();
+// --- Utility Functions ---
+function getOnboardingPath() {
+  return path.join(app.getPath('userData'), 'onboarding.json');
+}
+function getLoggerPath() {
+  return path.join(app.getPath('userData'), 'logger.json');
+}
+function writeJson(filePath, data) {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  return true;
+}
+function readJson(filePath) {
   if (fs.existsSync(filePath)) {
     try {
-      return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    } catch (e) {
+      return JSON.parse(fs.readFileSync(filePath));
+    } catch (error) {
+      console.error('Error reading JSON file:', error);
       return null;
     }
   }
   return null;
-});
+}
 
-// Handle writing app data
-ipcMain.handle('set-app-data', (event, data) => {
-  const filePath = getDataPath();
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+// --- IPC Handlers for Data ---
+ipcMain.handle('get-onboarding-data', () => readJson(getOnboardingPath()));
+ipcMain.handle('set-onboarding-data', (event, data) => writeJson(getOnboardingPath(), data));
+ipcMain.handle('get-logger-data', () => readJson(getLoggerPath()));
+ipcMain.handle('set-logger-data', (event, dataArr) => {
+  const filePath = getLoggerPath();
+  writeJson(filePath, dataArr);
   return true;
 });
 
-function createWindow() {
-  const win = new BrowserWindow({
+// --- Window Management ---
+let mainWindow = null;
+
+function createWindow(route = "/today") {
+  console.log('[Main] Creating window with route:', route);
+
+  mainWindow = new BrowserWindow({
     width: 450,
     height: 600,
-    alwaysOnTop: true,
     frame: false,
-    resizable: false,
+    resizable: true,
     maximizable: false,
-    webPreferences: { nodeIntegration: true, contextIsolation: false }
+    show: false, // Non mostrare finché non è pronta
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),  // Percorso relativo a main.cjs
+      nodeIntegration: false,
+      contextIsolation: true,
+      webSecurity: false
+    }
   });
-  win.removeMenu();
 
-     ipcMain.on("minimize", () => win.minimize());
-  ipcMain.on("close", () => win.close());
+  console.log('[Main] Window created');
+  mainWindow.removeMenu();
 
   if (!app.isPackaged) {
-    win.loadURL('http://localhost:5173');
+    // Modalità sviluppo
+    console.log('[Main] Development mode - loading from localhost');
+    const url = `http://localhost:5173${route}`;
+    console.log('[Main] Loading URL:', url);
+    mainWindow.loadURL(url);
+    mainWindow.webContents.openDevTools();
   } else {
-    win.loadFile(path.join(__dirname, '../dist/index.html'));
+    // Modalità production - CORRETTO
+    console.log('[Main] Production mode - loading from file');
+
+    // Il percorso corretto per i file buildati
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    console.log('[Main] Index path:', indexPath);
+    console.log('[Main] File exists:', fs.existsSync(indexPath));
+
+    if (fs.existsSync(indexPath)) {
+      const stats = fs.statSync(indexPath);
+      console.log('[Main] File size:', stats.size, 'bytes');
+
+      // Carica il file HTML principale
+      mainWindow.loadFile(indexPath).then(() => {
+        console.log('[Main] File loaded successfully');
+
+        // Dopo che la pagina è caricata, naviga alla route se necessario
+        mainWindow.webContents.once('did-finish-load', () => {
+          console.log('[Main] Page finished loading, navigating to route:', route);
+          if (route !== '/' && route !== '/today') {
+            // Usa il router di React per navigare
+            mainWindow.webContents.executeJavaScript(`
+              if (window.navigateToRoute) {
+                window.navigateToRoute('${route}');
+              } else {
+                console.warn('navigateToRoute not available yet');
+              }
+            `);
+          }
+        });
+      }).catch((error) => {
+        console.error('[Main] Error loading file:', error);
+      });
+    } else {
+      console.error('[Main] Index file not found at:', indexPath);
+
+      // Prova percorsi alternativi
+      const altPaths = [
+        path.join(__dirname, 'dist/index.html'),
+        path.join(__dirname, '../../dist/index.html'),
+        path.join(process.resourcesPath, 'dist/index.html')
+      ];
+
+      for (const altPath of altPaths) {
+        console.log('[Main] Trying alternative path:', altPath);
+        if (fs.existsSync(altPath)) {
+          console.log('[Main] Found at alternative path!');
+          mainWindow.loadFile(altPath);
+          break;
+        }
+      }
+    }
   }
+
+  // Eventi di debug
+  mainWindow.webContents.once('did-finish-load', () => {
+    console.log('[Main] Page finished loading');
+    mainWindow.show(); // Mostra la finestra quando è pronta
+  });
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+    console.error('[Main] Failed to load:', {
+      errorCode,
+      errorDescription,
+      validatedURL,
+      isMainFrame
+    });
+  });
+
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log('[Renderer Console]', message);
+  });
+
+  // Prevent manual resizing by user while allowing programmatic resize
+  mainWindow.on('will-resize', (event) => {
+    event.preventDefault();
+  });
+
+  mainWindow.on('closed', () => {
+    console.log('[Main] Window closed');
+    mainWindow = null;
+  });
+
+  mainWindow.on('ready-to-show', () => {
+    console.log('[Main] Window ready to show');
+    mainWindow.show();
+  });
 }
 
-app.whenReady().then(createWindow);
+// --- Utility IPC for All Windows ---
+ipcMain.on("minimize", () => {
+  console.log('[Main] Minimize requested');
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.minimize();
+});
+ipcMain.on("close", () => {
+  console.log('[Main] Close requested');
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.close();
+});
+ipcMain.on("reload", () => {
+  console.log('[Main] Reload requested');
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.reload();
+});
+ipcMain.on('renderer-log', (event, ...args) => {
+  console.log('[Renderer]', ...args);
+});
+
+ipcMain.on('resize-for-session', () => {
+    console.log('[Main] Resizing for session');
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.setSize(200, 200, true);
+        mainWindow.setAlwaysOnTop(true);
+    }
+});
+
+
+ipcMain.on('close-session', () => {
+    console.log('[Main] close-session received');
+
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.setSize(450, 600, true);
+        mainWindow.center();
+        mainWindow.setAlwaysOnTop(false);
+    }
+});
+
+ipcMain.on('navigate', (event, route) => {
+  console.log('[Main] navigate event received:', route);
+  resizeAndNavigate(route);
+});
+
+let pendingSessionResult = null;
+
+ipcMain.on('session-result', (event, result) => {
+  console.log('[Main] session-result event received:', result);
+  pendingSessionResult = result;
+});
+
+ipcMain.on('renderer-ready', () => {
+  console.log('[Main] renderer-ready received, pendingSessionResult:', pendingSessionResult);
+  if (pendingSessionResult && mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('session-result', pendingSessionResult);
+    pendingSessionResult = null;
+  }
+});
+
+// --- App Lifecycle ---
+console.log('[Main] Setting up app lifecycle events');
+
+app.whenReady().then(() => {
+  console.log('[Main] App is ready, creating window');
+  createWindow("/");
+});
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  console.log('[Main] All windows closed');
+  if (process.platform !== 'darwin') {
+    console.log('[Main] Quitting app');
+    app.quit();
+  }
 });
+
+app.on('activate', () => {
+  console.log('[Main] App activated');
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow("/");
+  }
+});
+
+// Gestione errori globali
+process.on('uncaughtException', (error) => {
+  console.error('[Main] Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Main] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+console.log('[Main] main.cjs loaded completely');
