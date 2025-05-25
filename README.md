@@ -4,7 +4,7 @@
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 
-> 🎉 **Release 1.0.0 is now available** — the **first official version** of the app!
+> 🎉 **Release 1.0.1 is now available** 
 
 ## Description
 
