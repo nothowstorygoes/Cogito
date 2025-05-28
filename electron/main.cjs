@@ -234,7 +234,9 @@ autoUpdater.on('update-available', () => {
 });
 autoUpdater.on('update-downloaded', () => {
   console.log('[AutoUpdater] Update downloaded, will install on quit');
+  autoUpdater.quitAndInstall();
 });
+
 autoUpdater.on('error', (err) => {
   console.error('[AutoUpdater] Error:', err);
 });

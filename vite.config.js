@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: './', // IMPORTANTE: path relativi per Electron
+  base: './',
   build: {
     outDir: 'dist',
     emptyOutDir: true,
