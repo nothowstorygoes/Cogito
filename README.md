@@ -9,7 +9,7 @@
 
 ## Description
 
-**Cogito** is a small desktop application built with **Vite**, **React**, and **Electron**.  
+**Cogito** is a desktop application built with **Vite**, **React**, and **Electron**.  
 Its purpose is to help you **track the time you spend** on various activities throughout your days.
 
 Main features include:
