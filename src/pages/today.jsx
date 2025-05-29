@@ -160,7 +160,7 @@ export default function Today() {
                 <div className="w-full flex justify-center items-center">
                     <button
                         className={`cursor-pointer rounded-4xl w-50 h-12 font-bold transition-all duration-500 hover:w-75
-                            ${dark ? "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0]" : "bg-[#6331c9] text-white hover:bg-[#4b2496]"}`}
+                            ${dark ? "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0]" : "bg-[#6331c9] font-semibold text-white hover:bg-[#4b2496]"}`}
                         onClick={() => {
                             navigate('/session');
                             setTimeout(() => {
@@ -190,7 +190,7 @@ export default function Today() {
                     </div>
                     <button
                         className={`absolute top-117 right-10 w-25 h-10 mt-10 rounded-2xl cursor-pointer transition-all duration-300 hover:h-15
-                            ${dark ? "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0] font-bold" : "bg-[#6331c9] text-white hover:bg-[#4b2496]"}`}
+                            ${dark ? "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0] font-semibold" : "bg-[#6331c9] text-white hover:bg-[#4b2496]"}`}
                         onClick={() => navigate("/home")}
                     >
                         Go Back

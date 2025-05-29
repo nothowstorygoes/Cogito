@@ -94,20 +94,10 @@ export default function Statistics() {
             </div>
             <div className="absolute flex flex-col gap-y-3 top-103 right-5">
                 <button
-                    onClick={() => navigate("/home")}
-                    className={`w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer
-                        ${dark
-                            ? "font-bold bg-[#D2D6EF] text-[#181825] border border-[#D2D6EF] hover:bg-[#b8bce0]"
-                            : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
-                        } hover:h-14`}
-                >
-                    Go Back
-                </button>
-                <button
                     onClick={() => navigate("/inDepth")}
                     className={`w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer
                         ${dark
-                            ? "font-bold bg-[#D2D6EF] text-[#181825] border border-[#D2D6EF] hover:bg-[#b8bce0]"
+                            ? "font-semibold bg-[#D2D6EF] text-[#181825] border border-[#D2D6EF] hover:bg-[#b8bce0]"
                             : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
                         }
                         hover:h-14
@@ -115,6 +105,16 @@ export default function Statistics() {
                     disabled={data.length <= 2}
                 >
                     In-Depth
+                </button>
+                <button
+                    onClick={() => navigate("/home")}
+                    className={`w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer
+                        ${dark
+                            ? "font-semibold bg-[#D2D6EF] text-[#181825] border border-[#D2D6EF] hover:bg-[#b8bce0]"
+                            : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
+                        } hover:h-14`}
+                >
+                    Go Back
                 </button>
             </div>
         </main>

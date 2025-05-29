@@ -118,7 +118,7 @@ export default function InDepth() {
                 onClick={() => navigate("/statistics")}
                 className={`absolute top-132 right-10 w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer
                     ${dark
-                        ? "bg-[#D2D6EF] text-[#181825] border border-[#D2D6EF] hover:bg-[#b8bce0]"
+                        ? "bg-[#D2D6EF] text-[#181825] font-semibold border border-[#D2D6EF] hover:bg-[#b8bce0]"
                         : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
                     } hover:w-45`}
             >

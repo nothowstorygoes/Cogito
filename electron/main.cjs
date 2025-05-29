@@ -54,9 +54,9 @@ function createWindow(route = "/today") {
     frame: false,
     resizable: true,
     maximizable: false,
-    show: false, // Non mostrare finché non è pronta
+    show: false, 
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),  // Percorso relativo a main.cjs
+      preload: path.join(__dirname, 'preload.js'), 
       nodeIntegration: false,
       contextIsolation: true,
       webSecurity: false
@@ -232,10 +232,38 @@ ipcMain.handle("save-file", async (event, { filePath, content }) => {
 autoUpdater.on('update-available', () => {
   console.log('[AutoUpdater] Update available');
 });
+
+let updateDownloaded = false;
+let installOnQuit = false;
+
+// Quando l'update è scaricato, avvisa il renderer
 autoUpdater.on('update-downloaded', () => {
-  console.log('[AutoUpdater] Update downloaded, will install on quit');
-  autoUpdater.quitAndInstall();
+  console.log('[AutoUpdater] Update downloaded, waiting for user action');
+  updateDownloaded = true;
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-downloaded');
+  }
 });
+
+// Ricevi la scelta dell'utente dal renderer
+ipcMain.on('user-update-action', (event, action) => {
+  if (action === 'install-now') {
+    console.log('[AutoUpdater] User chose to install now');
+    autoUpdater.quitAndInstall();
+  } else if (action === 'install-on-quit') {
+    console.log('[AutoUpdater] User chose to install on quit');
+    installOnQuit = true;
+  }
+});
+
+// Quando l'app sta per chiudersi, installa se richiesto
+app.on('before-quit', (event) => {
+  if (updateDownloaded && installOnQuit) {
+    console.log('[AutoUpdater] Installing update on quit');
+    autoUpdater.quitAndInstall();
+  }
+});
+
 
 autoUpdater.on('error', (err) => {
   console.error('[AutoUpdater] Error:', err);
@@ -264,6 +292,10 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow("/");
   }
+});
+
+ipcMain.handle("get-app-version", () => {
+  return app.getVersion();
 });
 
 // Gestione errori globali
