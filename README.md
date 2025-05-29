@@ -1,16 +1,15 @@
-<div align="center"> 
-  <img src="https://github.com/user-attachments/assets/0463e7dd-c742-4ec8-a084-a2ee66d7bb3f"> 
+<div align="center">
+
+  <img src="https://github.com/user-attachments/assets/125cf250-859e-4eed-ade0-0e6592eba7e1" width="120"> 
 </div>
 
 <h1 align="center">Cogito</h1>
 
-![Version](https://img.shields.io/badge/version-1.1.3-blue)
-
-> 🎉 **Release 1.1.3 is now available** 
+> 🎉 **Release 1.1.7 is now available** 
 
 ## Description
 
-**Cogito** is a small desktop application built with **Vite**, **React**, and **Electron**.  
+**Cogito** is a desktop application built with **Vite**, **React**, and **Electron**.  
 Its purpose is to help you **track the time you spend** on various activities throughout your days.
 
 Main features include:
