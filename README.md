@@ -20,6 +20,15 @@ Main features include:
 - 📥 Ability to import data from a `.json` file in a supported format;
 - 🌙 **NEW:** Dark mode support for a more comfortable night-time experience;
 - 💾 **NEW:** Export your data to a `.json` file for backup or transfer.
+- 🔗 **NEW**: Added Ergo's Integration system to link ExamShelf to Cogito.
+
+
+
+
+
+
+
+
 
 ---
 
