@@ -11,6 +11,7 @@ export default function InDepth() {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
     const navigate = useNavigate();
+    const [integrationOn, setIntegrationOn] = useState(false);
     const { dark } = useTheme();
 
     useEffect(() => {
@@ -26,6 +27,10 @@ export default function InDepth() {
         };
         fetchData();
     }, []);
+
+      useEffect(() => {
+        window.electron.invoke("check-exam-integration").then(setIntegrationOn);
+      }, []);
 
     // Prepara i dati per il grafico
     let chartData = null;
@@ -113,6 +118,19 @@ export default function InDepth() {
                         <b>{aboveAveragePercent}%</b> of your sessions were above average.<br/>
                     </p>
                 </div>
+            )}
+            {integrationOn && (
+                            <button
+                onClick={() => navigate("/examStatistics")}
+                className={`absolute top-132 left-12 w-40 h-10 rounded-2xl transition-all duration-300 cursor-pointer
+                    ${dark
+                        ? "bg-[#D2D6EF] text-[#181825] font-semibold border border-[#D2D6EF] hover:bg-[#b8bce0]"
+                        : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
+                    } hover:w-50`}
+            >
+                Exam Statistics
+            </button>
+
             )}
             <button
                 onClick={() => navigate("/statistics")}

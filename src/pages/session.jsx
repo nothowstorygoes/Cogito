@@ -1,6 +1,6 @@
 import TitleBar from "../components/TitleBar";
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../components/themeProvider";
 
 function formatTime(totalSeconds) {
@@ -12,10 +12,15 @@ function formatTime(totalSeconds) {
 
 export default function Session() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [seconds, setSeconds] = useState(0);
     const [running, setRunning] = useState(false);
     const intervalRef = useRef(null);
     const { dark } = useTheme();
+
+    // Recupera info integrazione e examName da location.state (passato da Today)
+    const integrationOn = location.state?.integrationOn || false;
+    const examName = location.state?.examName || null;
 
     useEffect(() => {
         if (running) {
@@ -35,10 +40,13 @@ export default function Session() {
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.ceil((seconds % 3600) / 60);
         let result;
-        if (hours > 0) {
-            result = { hours, minutes };
+        if (integrationOn && examName) {
+            result = {
+                time: { hours, minutes },
+                exam: examName
+            };
         } else {
-            result = { minutes };
+            result = hours > 0 ? { hours, minutes } : { minutes };
         }
         window.electron.send('renderer-log', "About to send session-result", result);
         window.electron.send("session-result", result);
@@ -50,29 +58,32 @@ export default function Session() {
         <main className={`w-screen h-screen flex flex-col items-center justify-center transition-colors duration-300 ${dark ? "bg-[#181825]" : "bg-[#D2D6EF]"}`}>
             <TitleBar />
             <div className={`text-3xl font-bold ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}>{formatTime(seconds)}</div>
-            <div className="flex flex-col gap-2 justify-center items-center">
-                <div className="flex flex-row gap-x-3 mt-4 justify-center items-center">
-                    {!running && (
-                        <button className="cursor-pointer" onClick={handleStart}>
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill={dark ? "#D2D6EF" : "#6331c9"}>
-                                <polygon points="10,8 18,12 10,16" fill={dark ? "#D2D6EF" : "#6331c9"} />
-                            </svg>
-                        </button>
-                    )}
-                    {running && (
-                        <button className="cursor-pointer" onClick={handlePause}>
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill={dark ? "#D2D6EF" : "#6331c9"}>
-                                <rect x="8" y="8" width="3" height="8" fill={dark ? "#D2D6EF" : "#6331c9"} />
-                                <rect x="13" y="8" width="3" height="8" fill={dark ? "#D2D6EF" : "#6331c9"} />
-                            </svg>
-                        </button>
-                    )}
-                    <button className="mb-1 cursor-pointer" onClick={handleFinish} disabled={seconds === 0}>
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                            <polyline points="7,13 11,17 17,9" fill="none" stroke={dark ? "#D2D6EF" : "#6331c9"} strokeWidth="2" />
+            <div className="flex flex-row gap-x-3 mt-4 justify-center items-center">
+                {!running && (
+                    <button
+                        className="cursor-pointer"
+                        onClick={handleStart}
+                        // Se integrazione attiva ma examName non passato, disabilita
+                        disabled={integrationOn && !examName}
+                    >
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill={dark ? "#D2D6EF" : "#6331c9"}>
+                            <polygon points="10,8 18,12 10,16" fill={dark ? "#D2D6EF" : "#6331c9"} />
                         </svg>
                     </button>
-                </div>
+                )}
+                {running && (
+                    <button className="cursor-pointer" onClick={handlePause}>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill={dark ? "#D2D6EF" : "#6331c9"}>
+                            <rect x="8" y="8" width="3" height="8" fill={dark ? "#D2D6EF" : "#6331c9"} />
+                            <rect x="13" y="8" width="3" height="8" fill={dark ? "#D2D6EF" : "#6331c9"} />
+                        </svg>
+                    </button>
+                )}
+                <button className="mb-1 cursor-pointer" onClick={handleFinish} disabled={seconds === 0}>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                        <polyline points="7,13 11,17 17,9" fill="none" stroke={dark ? "#D2D6EF" : "#6331c9"} strokeWidth="2" />
+                    </svg>
+                </button>
             </div>
         </main>
     );

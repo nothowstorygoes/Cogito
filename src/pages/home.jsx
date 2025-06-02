@@ -94,7 +94,7 @@ export default function Home() {
                         <img
                             src={userData.propic}
                             alt="Profile"
-                            className="rounded-full w-30 h-30 cursor-pointer"
+                            className="rounded-full w-30 h-30 cursor-pointer object-cover"
                             onClick={handleImageClick}
                         />
                         <input

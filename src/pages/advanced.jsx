@@ -11,6 +11,9 @@ export default function Advanced() {
   const [messageType, setMessageType] = useState(""); // "success" or "error"
   const { dark, toggleTheme } = useTheme();
   const [appVersion, setAppVersion] = useState("");
+  const [toggleOn, setToggleOn] = useState(false);
+
+  const [ErgoExists, setErgoExists] = useState(false);
 
   // Pulsanti: colori più contrastati
   const buttonBase =
@@ -20,7 +23,46 @@ export default function Advanced() {
     "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0] border border-[#D2D6EF]";
 
   useEffect(() => {
-window.electron.getAppVersion().then(version => setAppVersion(version || "Unknown"));  }, []);
+    window.electron.examShelfOnboardingExists().then((exists) => {
+      if (exists) {
+        // If onboarding exists, navigate to home
+        setErgoExists(true);
+      }
+    });
+  });
+
+   async function checkExamIntegration() {
+  const exists = await window.electron.invoke("check-exam-integration");
+  setToggleOn(!!exists);
+}
+
+// Funzione per eliminare ExamIntegration.json
+async function deleteExamIntegration() {
+  await window.electron.invoke("delete-exam-integration");
+}
+
+// All'avvio: controlla se ExamIntegration.json esiste
+useEffect(() => {
+  if (ErgoExists) checkExamIntegration();
+  // eslint-disable-next-line
+}, [ErgoExists]);
+
+// Quando il toggle cambia
+useEffect(() => {
+  if (!ErgoExists) return;
+  if (toggleOn) {
+    window.electron.invoke("ergo-integration");
+  } else {
+    deleteExamIntegration();
+  }
+  // eslint-disable-next-line
+}, [toggleOn, ErgoExists]);
+
+  useEffect(() => {
+    window.electron
+      .getAppVersion()
+      .then((version) => setAppVersion(version || "Unknown"));
+  }, []);
 
   // Export log handler
   const handleExport = async () => {
@@ -129,6 +171,50 @@ window.electron.getAppVersion().then(version => setAppVersion(version || "Unknow
               </svg>
             )}
           </button>
+        </div>
+        <div className="mt-8 w-80 flex flex-col items-center">
+          {!ErgoExists ? (
+            <div className="flex items-center gap-2 w-full justify-between">
+              <span
+                className={`text-sm ${
+                  toggleOn
+                    ? "text-[#6331c9] dark:text-[#D2D6EF]"
+                    : "text-gray-400"
+                }`}
+              >
+                Enable Ergo's Integration
+              </span>
+              <button
+                type="button"
+                aria-pressed={toggleOn}
+                onClick={() => setToggleOn((v) => !v)}
+                className={`cursor-pointer w-12 h-7 rounded-full transition-colors duration-300 relative
+                  ${
+                    toggleOn ? "bg-[#6331c9] dark:bg-[#D2D6EF]" : "bg-gray-300"
+                  }`}
+              >
+                <span
+                  className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow transition-all duration-300
+                    ${toggleOn ? "translate-x-5" : ""}`}
+                />
+              </button>
+            </div>
+          ) : (
+            <h2 className="text-md font-semibold text-[#6331c9] dark:text-[#D2D6EF] text-center">
+              Cogito is part of Ergo Ecosystem,
+              <br />
+              check out <a
+                        href="#"
+                        onClick={e => {
+                            e.preventDefault();
+                            window.electron.invoke("open-external", "https://github.com/nothowstorygoes/ExamShelf");
+                        }}
+                        className="text-[#6331c9] font-bold"
+                    >
+                        ExamShelf.
+                    </a>
+            </h2>
+          )}
         </div>
         <div className="absolute top-110 mx-auto text-sm text-[#6331c9] dark:text-[#D2D6EF]">
           v.{appVersion}

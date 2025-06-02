@@ -2,7 +2,105 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const { autoUpdater } = require("electron-updater");
 const { dialog } = require('electron');
 const path = require('path');
+const { shell } = require('electron');
 const fs = require('fs');
+
+
+// --- Retrocompatibilità: migrazione dati da vecchia cartella ---
+const oldUserData = app.getPath('userData');
+const newUserData = path.join(app.getPath('appData'), 'Ergo', 'Cogito');
+
+// Funzione ricorsiva per spostare tutti i file e cartelle
+function moveDirContents(src, dest) {
+  if (!fs.existsSync(src)) return;
+  if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+  for (const file of fs.readdirSync(src)) {
+    const srcPath = path.join(src, file);
+    const destPath = path.join(dest, file);
+    if (fs.lstatSync(srcPath).isDirectory()) {
+      moveDirContents(srcPath, destPath);
+      fs.rmdirSync(srcPath);
+    } else {
+      fs.renameSync(srcPath, destPath);
+    }
+  }
+}
+
+// Se la vecchia cartella esiste e la nuova no, migra tutto
+if (fs.existsSync(oldUserData) && !fs.existsSync(newUserData)) {
+  try {
+    moveDirContents(oldUserData, newUserData);
+    fs.rmdirSync(oldUserData, { recursive: true });
+    console.log(`[Migration] Moved data from ${oldUserData} to ${newUserData}`);
+  } catch (err) {
+    console.error('[Migration] Error moving data:', err);
+  }
+}
+
+// Forza sempre il nuovo path per userData
+app.setPath('userData', newUserData);
+
+
+// Integrazione Ergo
+
+function examShelfOnboardingExists() {
+  const examShelfPath = path.join(app.getPath('appData'), 'Ergo', 'ExamShelf', 'onboarding.json');
+  return fs.existsSync(examShelfPath);
+}
+
+ipcMain.handle("exam-shelf-onboarding-exists", () => {
+  return examShelfOnboardingExists();
+});
+
+ipcMain.handle("ergo-integration", async () => {
+  try {
+    // Path di origine e destinazione
+    const examPath = path.join(app.getPath('appData'), 'Ergo', 'ExamShelf', 'exams.json');
+    const integrationPath = path.join(app.getPath('appData'), 'Ergo', 'Cogito', 'ExamIntegration.json');
+
+    // Leggi exam.json
+    if (!fs.existsSync(examPath)) {
+      throw new Error("exam.json not found in Ergo/ExamShelf");
+    }
+    const data = fs.readFileSync(examPath, "utf-8");
+    const array = JSON.parse(data);
+
+    // Scrivi ExamIntegration.json
+    fs.writeFileSync(integrationPath, JSON.stringify(array, null, 2), "utf-8");
+
+    return { success: true };
+  } catch (err) {
+    console.error("[Ergo Integration] Error:", err);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle("check-exam-integration", () => {
+  const integrationPath = path.join(app.getPath('appData'), 'Ergo', 'Cogito', 'ExamIntegration.json');
+  return fs.existsSync(integrationPath);
+});
+
+ipcMain.handle("delete-exam-integration", () => {
+  const integrationPath = path.join(app.getPath('appData'), 'Ergo', 'Cogito', 'ExamIntegration.json');
+  if (fs.existsSync(integrationPath)) {
+    fs.unlinkSync(integrationPath);
+    return true;
+  }
+  return false;
+});
+
+ipcMain.handle("get-exam-integration-list", () => {
+  const integrationPath = path.join(app.getPath('appData'), 'Ergo', 'Cogito', 'ExamIntegration.json');
+  if (fs.existsSync(integrationPath)) {
+    try {
+      const data = fs.readFileSync(integrationPath, "utf-8");
+      return JSON.parse(data);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+});
 
 // Debug all'inizio
 console.log('[Main] Starting Electron app...');
@@ -54,6 +152,7 @@ function createWindow(route = "/today") {
     frame: false,
     resizable: true,
     maximizable: false,
+    alwaysOnTop: true,
     show: false, 
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'), 
@@ -186,6 +285,10 @@ ipcMain.on('resize-for-session', () => {
         mainWindow.setSize(200, 200, true);
         mainWindow.setAlwaysOnTop(true);
     }
+});
+
+ipcMain.handle("open-external", (event, url) => {
+  shell.openExternal(url);
 });
 
 

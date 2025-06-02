@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld("electron", {
   onUpdateDownloaded: (callback) =>
     ipcRenderer.on("update-downloaded", callback),
   sendUpdateAction: (action) => ipcRenderer.send("user-update-action", action),
-    getAppVersion: () => ipcRenderer.invoke("get-app-version"),
-
+  getAppVersion: () => ipcRenderer.invoke("get-app-version"),
+  examShelfOnboardingExists: () =>
+    ipcRenderer.invoke("exam-shelf-onboarding-exists"),
 });
