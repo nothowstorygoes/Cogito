@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 
+release/
+
 src/App.jsx
 
 # Editor directories and files
