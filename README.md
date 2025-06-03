@@ -5,7 +5,7 @@
 
 <h1 align="center">Cogito</h1>
 
-> 🎉 **Release 1.1.8 is now available** 
+> 🎉 **Release 1.2.1 is now available** 
 
 ## Description
 
@@ -20,6 +20,15 @@ Main features include:
 - 📥 Ability to import data from a `.json` file in a supported format;
 - 🌙 **NEW:** Dark mode support for a more comfortable night-time experience;
 - 💾 **NEW:** Export your data to a `.json` file for backup or transfer.
+- 🔗 **NEW**: Added Ergo's Integration system to link ExamShelf to Cogito.
+
+
+
+
+
+
+
+
 
 ---
 
