@@ -173,7 +173,7 @@ useEffect(() => {
           </button>
         </div>
         <div className="mt-8 w-80 flex flex-col items-center">
-          {!ErgoExists ? (
+          {ErgoExists ? (
             <div className="flex items-center gap-2 w-full justify-between">
               <span
                 className={`text-sm ${

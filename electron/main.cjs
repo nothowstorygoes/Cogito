@@ -152,7 +152,7 @@ function createWindow(route = "/today") {
     frame: false,
     resizable: true,
     maximizable: false,
-    alwaysOnTop: true,
+    alwaysOnTop: false,
     show: false, 
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'), 
