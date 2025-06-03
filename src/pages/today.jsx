@@ -16,6 +16,7 @@ export default function Today() {
   const [integrationOn, setIntegrationOn] = useState(false);
   const [examList, setExamList] = useState([]);
   const [selectedExam, setSelectedExam] = useState(null);
+  const [goalHours, setGoalHours] = useState(0); // Default goal hours
 
   const { dark } = useTheme();
 
@@ -47,15 +48,14 @@ export default function Today() {
 
     // Calculate session minutes from result
     let sessionMinutes = 0;
-    if (result.time && typeof result.time === 'object') {
-  if (result.time.hours) sessionMinutes += result.time.hours * 60;
-  if (result.time.minutes) sessionMinutes += result.time.minutes;
-} 
-// Fallback per il formato precedente (se mai dovesse servire)
-else {
-  if (result.hours) sessionMinutes += result.hours * 60;
-  
-}
+    if (result.time && typeof result.time === "object") {
+      if (result.time.hours) sessionMinutes += result.time.hours * 60;
+      if (result.time.minutes) sessionMinutes += result.time.minutes;
+    }
+    // Fallback per il formato precedente (se mai dovesse servire)
+    else {
+      if (result.hours) sessionMinutes += result.hours * 60;
+    }
     // 1. Add result to grandTotal on onboarding data (convert minutes to hours)
     userData.grandTotal = Number(userData.grandTotal) + sessionMinutes;
 
@@ -107,6 +107,12 @@ else {
     await window.electron.invoke("set-logger-data", dataArr);
     setTodayData({ ...todayEntry });
   };
+
+  useEffect(() => {
+    window.electron.invoke("get-onboarding-data").then((res) => {
+      setGoalHours(res?.hours || 0);
+    });
+  });
 
   useEffect(() => {
     window.electron.invoke("check-exam-integration").then(setIntegrationOn);
@@ -180,12 +186,16 @@ else {
           <div
             className={`text-xl flex flex-row p-10 justify-between items-center w-full ${
               dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-            } ${integrationOn ? "-mt-2" : "-mt-10"}` }
+            } ${integrationOn ? "-mt-14" : "-mt-10"}`}
           >
             <h2>Today</h2>
             <p>{todayData.date}</p>
           </div>
-          <div className={`flex flex-row items-center absolute left-9 ${integrationOn ? "top-18" : "top-27 "}`}>
+          <div
+            className={`flex flex-row items-center absolute left-9 ${
+              integrationOn ? "top-21" : "top-27 "
+            }`}
+          >
             <Star achieved />
             <p
               className={`text-xl ml-2 font-bold ${
@@ -199,8 +209,8 @@ else {
             <CircularProgressbar
               className={dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}
               value={todayData.time}
-              maxValue={300}
-              text={`${Math.round((todayData.time / 300) * 100)}%`}
+              maxValue={goalHours * 60} // Convert goal hours to minutes
+              text={`${Math.round((todayData.time / (goalHours*60)) * 100)}%`}
               styles={{
                 path: {
                   strokeWidth: "8",
@@ -217,7 +227,11 @@ else {
               }}
             />
           </div>
-          <div className={`absolute right-10 gap-y-4 flex flex-col items-center ${integrationOn ? "top-25" : "top-35"}`}>
+          <div
+            className={`absolute right-10 gap-y-4 flex flex-col items-center ${
+              integrationOn ? "top-25" : "top-35"
+            }`}
+          >
             <Star achieved={todayData.stars >= 1} />
             <Star achieved={todayData.stars >= 2} />
             <Star achieved={todayData.stars >= 3} />
@@ -290,7 +304,7 @@ else {
                 Your sessions <br /> so far{" "}
               </p>
               {todayData.sessions.length > 0 ? (
-                todayData.sessions.slice(0,3).map((session, index) => (
+                todayData.sessions.slice(0, 3).map((session, index) => (
                   <div key={index} className="flex flex-row items-center mt-2">
                     <p
                       className={`text-xl ${

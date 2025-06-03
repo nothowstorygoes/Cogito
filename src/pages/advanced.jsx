@@ -12,7 +12,7 @@ export default function Advanced() {
   const { dark, toggleTheme } = useTheme();
   const [appVersion, setAppVersion] = useState("");
   const [toggleOn, setToggleOn] = useState(false);
-
+  const [onboardingHours, setOnboardingHours] = useState(0);
   const [ErgoExists, setErgoExists] = useState(false);
 
   // Pulsanti: colori più contrastati
@@ -31,32 +31,40 @@ export default function Advanced() {
     });
   });
 
-   async function checkExamIntegration() {
-  const exists = await window.electron.invoke("check-exam-integration");
-  setToggleOn(!!exists);
-}
-
-// Funzione per eliminare ExamIntegration.json
-async function deleteExamIntegration() {
-  await window.electron.invoke("delete-exam-integration");
-}
-
-// All'avvio: controlla se ExamIntegration.json esiste
-useEffect(() => {
-  if (ErgoExists) checkExamIntegration();
-  // eslint-disable-next-line
-}, [ErgoExists]);
-
-// Quando il toggle cambia
-useEffect(() => {
-  if (!ErgoExists) return;
-  if (toggleOn) {
-    window.electron.invoke("ergo-integration");
-  } else {
-    deleteExamIntegration();
+  async function checkExamIntegration() {
+    const exists = await window.electron.invoke("check-exam-integration");
+    setToggleOn(!!exists);
   }
-  // eslint-disable-next-line
-}, [toggleOn, ErgoExists]);
+
+  // Funzione per eliminare ExamIntegration.json
+  async function deleteExamIntegration() {
+    await window.electron.invoke("delete-exam-integration");
+  }
+
+  // All'avvio: controlla se ExamIntegration.json esiste
+  useEffect(() => {
+    if (ErgoExists) checkExamIntegration();
+    // eslint-disable-next-line
+  }, [ErgoExists]);
+
+  // Quando il toggle cambia
+  useEffect(() => {
+    if (!ErgoExists) return;
+    if (toggleOn) {
+      window.electron.invoke("ergo-integration");
+    } else {
+      deleteExamIntegration();
+    }
+    // eslint-disable-next-line
+  }, [toggleOn, ErgoExists]);
+
+  useEffect(() => {
+    window.electron.invoke("get-onboarding-data").then((res) => {
+      if (res) {
+        setOnboardingHours(res.hours || 0);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     window.electron
@@ -203,19 +211,58 @@ useEffect(() => {
             <h2 className="text-md font-semibold text-[#6331c9] dark:text-[#D2D6EF] text-center">
               Cogito is part of Ergo Ecosystem,
               <br />
-              check out <a
-                        href="#"
-                        onClick={e => {
-                            e.preventDefault();
-                            window.electron.invoke("open-external", "https://github.com/nothowstorygoes/ExamShelf");
-                        }}
-                        className="text-[#6331c9] font-bold"
-                    >
-                        ExamShelf.
-                    </a>
+              check out{" "}
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.electron.invoke(
+                    "open-external",
+                    "https://github.com/nothowstorygoes/ExamShelf"
+                  );
+                }}
+                className="text-[#6331c9] font-bold"
+              >
+                ExamShelf.
+              </a>
             </h2>
           )}
         </div>
+        <div className="mt-8 w-80 flex flex-col items-center">
+          {/* Onboarding hours input */}
+          <div className="flex flex-row items-center justify-between w-full mb-6">
+            <label
+              htmlFor="onboarding-hours"
+              className={`text-md ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}
+            >
+              Daily Goal (hours)
+            </label>
+            <input
+              id="onboarding-hours"
+              type="number"
+              min={1}
+              max={24}
+              step={1}
+              value={onboardingHours}
+              onChange={async (e) => {
+                const val = Math.max(1, Math.min(24, Number(e.target.value)));
+                setOnboardingHours(val);
+                await window.electron.invoke("get-onboarding-data").then((data) => {
+                  if (data) {
+                    data.hours = val;
+                    window.electron.invoke("set-onboarding-data", data);
+                  }
+                })
+              }}
+              className={`rounded-3xl px-4 py-2 w-24 ml-4 border transition-colors duration-300 outline-none
+                ${dark
+                  ? "bg-[#181825] border-[#D2D6EF] text-[#D2D6EF] focus:border-[#6331c9]"
+                  : "bg-white border-[#6331c9] text-[#6331c9] focus:border-[#181825]"
+                }`}
+            />
+          </div>
+          </div>
+
         <div className="absolute top-110 mx-auto text-sm text-[#6331c9] dark:text-[#D2D6EF]">
           v.{appVersion}
         </div>
