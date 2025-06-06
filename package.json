@@ -1,7 +1,7 @@
 {
   "name": "cogito",
   "private": true,
-  "version": "1.2.5",
+  "version": "1.2.6",
   "author": "nothowstorygoes",
   "description": "Cogito is a desktop app for tracking your performance in different activities.",
   "type": "module",

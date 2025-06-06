@@ -10,7 +10,7 @@ export default function TitleBar() {
 
     return (
         <div
-            className="fixed top-0 left-0 w-full flex items-center justify-end"
+            className="z-50 fixed top-0 left-0 w-full flex items-center justify-end"
             style={{ WebkitAppRegion: "drag", height: 32 }}
         >
             {/* Right: Window Controls */}

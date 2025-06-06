@@ -7,7 +7,6 @@ import { motion } from "framer-motion";
 const FOCUS_OPTIONS = [
     { value: "work", label: "Work" },
     { value: "study", label: "Study" },
-    { value: "fitness", label: "Fitness" },
     { value: "creative", label: "Creative Projects" },
 ];
 

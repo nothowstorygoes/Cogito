@@ -184,7 +184,7 @@ export default function Today() {
         <>
           <TitleBar />
           <div
-            className={`text-xl flex flex-row p-10 justify-between items-center w-full ${
+            className={`z-10 text-xl flex flex-row p-10 justify-between items-center w-full ${
               dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
             } ${integrationOn ? "absolute top-0" : "-mt-10"}`}
           >
@@ -205,7 +205,7 @@ export default function Today() {
               {todayData.stars}/3
             </p>
           </div>
-          <div className="w-40 h-40 flex justify-center items-center mx-auto mb-4">
+          <div className={`w-40 h-40 flex justify-center items-center mx-auto mb-4 ${integrationOn ? "mt-20" : ""}`}>
             <CircularProgressbar
               className={dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}
               value={todayData.time}
@@ -277,7 +277,8 @@ export default function Today() {
                               dark
                                 ? "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0]"
                                 : "bg-[#6331c9] font-semibold text-white hover:bg-[#4b2496]"
-                            }`}
+                            }
+                          ${integrationOn && !selectedExam ? "bg-gray-700 text-white hover:bg-gray-700 hover:!w-50 cursor-not-allowed" : ""}`}
               onClick={() => {
                 navigate("/session", {
                   state: {
