@@ -186,7 +186,7 @@ export default function Today() {
           <div
             className={`text-xl flex flex-row p-10 justify-between items-center w-full ${
               dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-            } ${integrationOn ? "-mt-2" : "-mt-10"}`}
+            } ${integrationOn ? "absolute top-0" : "-mt-10"}`}
           >
             <h2>Today</h2>
             <p>{todayData.date}</p>
