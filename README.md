@@ -5,7 +5,7 @@
 
 <h1 align="center">Cogito</h1>
 
-> 🎉 **Release 1.2.1 is now available** 
+> 🎉 **Release 1.2.4 is now available** 
 
 ## Description
 
