@@ -130,6 +130,77 @@ function readJson(filePath) {
   return null;
 }
 
+// --- Timer Functions ---
+// Timer globale per la sessione
+let sessionTimer = {
+  startTime: null,
+  isRunning: false,
+  pausedTime: 0, // tempo totale in pausa (in ms)
+  lastPauseStart: null,
+  intervalId: null
+};
+
+// Funzioni per gestire il timer
+function startTimer() {
+  if (!sessionTimer.isRunning) {
+    if (sessionTimer.startTime === null) {
+      // Prima volta: registra il tempo di inizio
+      sessionTimer.startTime = Date.now();
+    } else {
+      // Riprende da pausa: calcola tempo in pausa
+      sessionTimer.pausedTime += Date.now() - sessionTimer.lastPauseStart;
+    }
+    sessionTimer.isRunning = true;
+    // Invia aggiornamenti ogni secondo al renderer
+    sessionTimer.intervalId = setInterval(() => {
+      const currentSeconds = Math.floor((Date.now() - sessionTimer.startTime - sessionTimer.pausedTime) / 1000);
+      // Controllo di sicurezza per evitare NaN
+      const safeSeconds = isNaN(currentSeconds) || currentSeconds < 0 ? 0 : currentSeconds;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('timer-update', safeSeconds);
+      }
+    }, 1000);
+  }
+}
+
+function pauseTimer() {
+  if (sessionTimer.isRunning) {
+    sessionTimer.isRunning = false;
+    sessionTimer.lastPauseStart = Date.now();
+    if (sessionTimer.intervalId) {
+      clearInterval(sessionTimer.intervalId);
+      sessionTimer.intervalId = null;
+    }
+  }
+}
+
+function getTimerSeconds() {
+  if (sessionTimer.startTime === null) return 0;
+  
+  let seconds = 0;
+  if (sessionTimer.isRunning) {
+    seconds = Math.floor((Date.now() - sessionTimer.startTime - sessionTimer.pausedTime) / 1000);
+  } else {
+    // Se non è in esecuzione ma lastPauseStart è null, significa che non è mai stato avviato
+    if (sessionTimer.lastPauseStart === null) return 0;
+    seconds = Math.floor((sessionTimer.lastPauseStart - sessionTimer.startTime - sessionTimer.pausedTime) / 1000);
+  }
+  
+  // Controllo di sicurezza per evitare NaN o valori negativi
+  return isNaN(seconds) || seconds < 0 ? 0 : seconds;
+}
+
+function resetTimer() {
+  if (sessionTimer.intervalId) {
+    clearInterval(sessionTimer.intervalId);
+    sessionTimer.intervalId = null;
+  }
+  sessionTimer.startTime = null;
+  sessionTimer.isRunning = false;
+  sessionTimer.pausedTime = 0;
+  sessionTimer.lastPauseStart = null;
+}
+
 // --- IPC Handlers for Data ---
 ipcMain.handle('get-onboarding-data', () => readJson(getOnboardingPath()));
 ipcMain.handle('set-onboarding-data', (event, data) => writeJson(getOnboardingPath(), data));
@@ -138,6 +209,26 @@ ipcMain.handle('set-logger-data', (event, dataArr) => {
   const filePath = getLoggerPath();
   writeJson(filePath, dataArr);
   return true;
+});
+
+// --- Timer Handlers ---
+ipcMain.on('timer-start', () => {
+  console.log('[Timer] Starting timer');
+  startTimer();
+});
+
+ipcMain.on('timer-pause', () => {
+  console.log('[Timer] Pausing timer');
+  pauseTimer();
+});
+
+ipcMain.handle('timer-get-seconds', () => {
+  return getTimerSeconds();
+});
+
+ipcMain.on('timer-reset', () => {
+  console.log('[Timer] Resetting timer');
+  resetTimer();
 });
 
 // --- Window Management ---
@@ -282,13 +373,19 @@ ipcMain.on('renderer-log', (event, ...args) => {
 ipcMain.on('resize-for-session', () => {
     console.log('[Main] Resizing for session');
     if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.setSize(200, 200, true);
+        mainWindow.setSize(170, 170, true);
         mainWindow.setAlwaysOnTop(true);
     }
 });
 
 ipcMain.handle("open-external", (event, url) => {
   shell.openExternal(url);
+});
+
+// Open app folder
+ipcMain.handle('open-app-folder', () => {
+  const userDataPath = app.getPath('userData');
+  shell.openPath(userDataPath);
 });
 
 

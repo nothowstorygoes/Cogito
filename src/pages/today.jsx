@@ -17,11 +17,42 @@ export default function Today() {
   const [examList, setExamList] = useState([]);
   const [selectedExam, setSelectedExam] = useState(null);
   const [goalHours, setGoalHours] = useState(0); // Default goal hours
+  const [showManualLogPopup, setShowManualLogPopup] = useState(false);
+  const [manualMinutes, setManualMinutes] = useState("");
 
   const { dark } = useTheme();
 
   // Helper to get today's date string (first 5 chars)
   const getTodayShort = () => new Date().toLocaleDateString().slice(0, 5);
+
+  // Manual logging function
+  const handleManualLog = () => {
+    const minutes = parseInt(manualMinutes);
+    if (isNaN(minutes) || minutes <= 0) {
+      alert("Please enter a valid number of minutes");
+      return;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    // Create result object in the same format as session
+    const result = {
+      time: { hours, minutes: remainingMinutes },
+    };
+
+    // Add exam if integration is on and exam is selected
+    if (integrationOn && selectedExam) {
+      result.exam = selectedExam.name;
+    }
+
+    // Use the same function as session end
+    processAndSaveSessionResult(result);
+
+    // Close popup and reset
+    setShowManualLogPopup(false);
+    setManualMinutes("");
+  };
 
   // Unified function: process result, update logger, update state
   const processAndSaveSessionResult = async (result) => {
@@ -205,12 +236,16 @@ export default function Today() {
               {todayData.stars}/3
             </p>
           </div>
-          <div className={`w-40 h-40 flex justify-center items-center mx-auto mb-4 ${integrationOn ? "mt-20" : ""}`}>
+          <div
+            className={`w-40 h-40 flex justify-center items-center mx-auto mb-4 ${
+              integrationOn ? "mt-20" : ""
+            }`}
+          >
             <CircularProgressbar
               className={dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}
               value={todayData.time}
               maxValue={goalHours * 60} // Convert goal hours to minutes
-              text={`${Math.round((todayData.time / (goalHours*60)) * 100)}%`}
+              text={`${Math.round((todayData.time / (goalHours * 60)) * 100)}%`}
               styles={{
                 path: {
                   strokeWidth: "8",
@@ -278,7 +313,11 @@ export default function Today() {
                                 ? "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0]"
                                 : "bg-[#6331c9] font-semibold text-white hover:bg-[#4b2496]"
                             }
-                          ${integrationOn && !selectedExam ? "bg-gray-700 text-white hover:bg-gray-700 hover:!w-50 cursor-not-allowed" : ""}`}
+                          ${
+                            integrationOn && !selectedExam
+                              ? "bg-gray-700 text-white hover:bg-gray-700 hover:!w-50 cursor-not-allowed"
+                              : ""
+                          }`}
               onClick={() => {
                 navigate("/session", {
                   state: {
@@ -335,8 +374,20 @@ export default function Today() {
                 {(todayData.time / 60).toFixed(2)}h
               </p>
             </div>
+            <div className="absolute top-122 right-10 gap-x-5 flex flex-row">
             <button
-              className={`absolute top-117 right-10 w-25 h-10 mt-10 rounded-2xl cursor-pointer transition-all duration-300 hover:h-15
+              className={` w-35 h-10 mt-10 rounded-2xl cursor-pointer transition-all duration-300 hover:w-45
+                            ${
+                              dark
+                                ? "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0] font-semibold"
+                                : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
+                            }`}
+              onClick={() => setShowManualLogPopup(true)}
+            >
+              Log Manually
+            </button>
+            <button
+              className={` w-25 h-10 mt-10 rounded-2xl cursor-pointer transition-all duration-300 hover:w-30
                             ${
                               dark
                                 ? "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0] font-semibold"
@@ -346,8 +397,88 @@ export default function Today() {
             >
               Go Back
             </button>
+            </div>
           </div>
         </>
+      )}
+
+      {/* Manual Log Popup */}
+      {showManualLogPopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div
+            className={`p-8 rounded-xl w-96 shadow-2xl ${
+              dark
+                ? "bg-[#181825] text-[#D2D6EF]"
+                : "bg-[#D2D6EF] text-[#6331c9]"
+            }`}
+          >
+            <h2 className="text-2xl font-bold mb-4 text-center">
+              Log Minutes Manually
+            </h2>
+            <p className="mb-4 text-center">
+              How many minutes would you like to log?
+            </p>
+            <style>
+              {`
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+`}
+            </style>
+            <input
+              type="number"
+              min="1"
+              max="2000"
+              value={manualMinutes}
+              onChange={(e) => setManualMinutes(e.target.value)}
+              placeholder="Enter minutes..."
+              className={`w-full p-3 rounded-lg border mb-4 text-center outline-none ${
+                dark
+                  ? "bg-[#23263a] border-[#D2D6EF] text-[#D2D6EF] placeholder-[#D2D6EF]/50"
+                  : "bg-white border-[#6331c9] text-[#6331c9] placeholder-[#6331c9]/50"
+              }`}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleManualLog();
+                if (e.key === "Escape") {
+                  setShowManualLogPopup(false);
+                  setManualMinutes("");
+                }
+              }}
+            />
+
+            <div className="flex gap-4 justify-center">
+              <button
+                className={`w-35 h-10 hover:w-40 rounded-2xl font-semibold transition-all duration-300 cursor-pointer ${
+                  dark
+                    ? "bg-[#D2D6EF] text-[#181825]"
+                    : "bg-[#6331c9] text-white"
+                }`}
+                onClick={handleManualLog}
+              >
+                Log Minutes
+              </button>
+              <button
+                className={`w-25 hover:w-30 rounded-2xl font-semibold transition-all duration-300 cursor-pointer ${
+                  dark
+                    ? "bg-[#23263a] text-[#D2D6EF] border border-[#D2D6EF]"
+                    : "bg-white text-[#6331c9] border border-[#6331c9]"
+                }`}
+                onClick={() => {
+                  setShowManualLogPopup(false);
+                  setManualMinutes("");
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

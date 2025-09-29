@@ -128,7 +128,7 @@ export default function Advanced() {
           In this section you can import preexisting data or export a backup of
           your log.
         </p>
-        <div className="flex flex-row items-center justify-between w-80 mb-10">
+        <div className="flex flex-row items-center justify-between w-80 mb-5">
           <button
             className={`${buttonBase} ${dark ? buttonDark : buttonLight}`}
             onClick={() => navigate("/import")}
@@ -143,6 +143,12 @@ export default function Advanced() {
             {exporting ? "Exporting..." : "Export Log"}
           </button>
         </div>
+        <button
+            className={`w-40 hover:w-50 ${buttonBase} ${dark ? buttonDark : buttonLight}`}
+            onClick={() => window.electron.invoke('open-app-folder')}
+          >
+            Open App Folder
+          </button>
         {/* Single Light/Dark Switch */}
         <div className="flex flex-row gap-4 items-center mb-6 absolute top-129 left-15 ">
           <button

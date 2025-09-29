@@ -18,7 +18,9 @@ export default function Statistics() {
     const fetchData = async () => {
       try {
         const stats = await window.electron.invoke("get-logger-data");
-        setData(stats);
+        // Inverte l'ordine dei dati per mostrare le entry più recenti per prime
+        const reversedStats = Array.isArray(stats) ? [...stats].reverse() : [];
+        setData(reversedStats);
       } catch (error) {
         console.error("Error fetching statistics data:", error);
       } finally {

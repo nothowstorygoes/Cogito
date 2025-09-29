@@ -12,4 +12,10 @@ contextBridge.exposeInMainWorld("electron", {
   getAppVersion: () => ipcRenderer.invoke("get-app-version"),
   examShelfOnboardingExists: () =>
     ipcRenderer.invoke("exam-shelf-onboarding-exists"),
+  // Timer functions
+  timerStart: () => ipcRenderer.send("timer-start"),
+  timerPause: () => ipcRenderer.send("timer-pause"),
+  timerGetSeconds: () => ipcRenderer.invoke("timer-get-seconds"),
+  timerReset: () => ipcRenderer.send("timer-reset"),
+  onTimerUpdate: (callback) => ipcRenderer.on("timer-update", (event, seconds) => callback(seconds)),
 });
