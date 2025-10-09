@@ -1,14 +1,14 @@
 import { useState } from "react";
 import TitleBar from "../components/TitleBar";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../components/themeProvider";
+// theme via CSS variables; no ThemeProvider
 
 export default function Import() {
     const [isUploading, setIsUploading] = useState(false);
     const navigate = useNavigate();
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState(""); // "success" or "error"
-    const { dark } = useTheme();
+    
 
     const validateDataStructure = (data) => {
         if (!Array.isArray(data)) {
@@ -100,24 +100,24 @@ export default function Import() {
     };
 
     return (
-        <main className={`w-screen h-screen flex flex-col items-center justify-center transition-colors duration-300 ${dark ? "bg-[#181825]" : "bg-[#D2D6EF]"}`}>
+        <main className={`w-screen h-screen flex flex-col items-center justify-center transition-colors duration-300 bg-secondary`}>
             <TitleBar />
             <div className="w-full flex justify-center items-center p-10 flex-col">
-                <h2 className={`${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}>Data can be imported using a <b>.JSON</b> with the following data structure:</h2>
-                <div className={`${dark ? "bg-[#23263a]" : "bg-[#767676]"} w-full rounded-2xl p-3 mt-10 -ml-2 flex flex-row justify-between items-end`}>
-                    <p className="text-white text-sm">
+                <h2 className={`text-primary`}>Data can be imported using a <b>.JSON</b> with the following data structure:</h2>
+                <div className={`bg-primary-weak w-full rounded-2xl p-3 mt-10 -ml-2 flex flex-row justify-between items-end`}>
+                    <p className="text-primary text-sm">
                         "date" : "23/05",<br/>
                         "time" : 158,<br/>
                         "stars" : 2,<br/>
                         "sessions" : []<br/>
                     </p>
-                    <p className="text-white text-xs">data.json</p>
+                    <p className="text-primary text-xs">data.json</p>
                 </div>
-                <p className={`text-sm mb-6 ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}>Attempting to import data in the wrong format will result in an error.</p>
+                <p className={`text-sm mb-6 text-primary`}>Attempting to import data in the wrong format will result in an error.</p>
                 {/* File Upload Section */}
                 <div className="w-full max-w-md">
                     <div className="mb-4">
-                        <label className={`block text-sm font-medium mb-2 ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}>
+                        <label className={`block text-sm font-medium mb-2 text-primary`}>
                             Select JSON file to import:
                         </label>
                         <input
@@ -125,21 +125,13 @@ export default function Import() {
                             accept=".json"
                             onChange={handleFileUpload}
                             disabled={isUploading}
-                            className={`w-full px-3 py-2 border rounded-lg bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
-                                ${dark
-                                    ? "border-[#D2D6EF] text-[#181825] file:bg-[#D2D6EF] file:text-[#181825] hover:file:bg-[#b8bce0]"
-                                    : "border-[#6331c9] text-[#6331c9] file:bg-[#6331c9] file:text-white hover:file:bg-[#5028a3]"
-                                } disabled:opacity-50`}
+                            className={`w-full px-3 py-2 border rounded-lg bg-primary-weak file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 border-primary text-primary file:bg-primary file:text-secondary hover:file:opacity-90 disabled:opacity-50`}
                         />
                     </div>
                 </div>
                 <button
                     onClick={()=> navigate("/advanced")}
-                    className={`absolute top-130 right-10 w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer
-                        ${dark
-                            ? "bg-[#D2D6EF] text-[#181825] border border-[#D2D6EF] hover:bg-[#b8bce0]"
-                            : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
-                        } hover:w-45`}
+                    className={`absolute top-130 right-10 w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer bg-primary text-secondary font-semibold hover:opacity-90 hover:w-45`}
                 >
                     Go back
                 </button>

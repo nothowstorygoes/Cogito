@@ -5,7 +5,7 @@
 
 <h1 align="center">Cogito</h1>
 
-> 🎉 **Release 1.2.6 is now available** 
+> 🎉 **Release 1.4.0 is now available** 
 
 ## Description
 
@@ -17,9 +17,12 @@ Main features include:
 - ⏱️ Built-in stopwatch to track work/study sessions;
 - 📈 Daily-based statistics and summaries;
 - 📅 A full daily log of all recorded sessions;
+- 🎨 **NEW:** Theme support with a built‑in Theme Picker;
+- ⭐ Goal-based 3‑star progress bar that fills vertically as you progress;
+- 🌟 **NEW:** Bonus stars for exceeding your daily goal — earn +1 star for every additional 20% over the goal;
+- 📊 **NEW:** Exam Statistics redesigned — a single chart with per‑exam filter buttons to quickly switch views;
 - 📥 Ability to import data from a `.json` file in a supported format;
-- 🌙 **NEW:** Dark mode support for a more comfortable night-time experience;
-- 💾 **NEW:** Export your data to a `.json` file for backup or transfer.
+- 💾 Export your data to a `.json` file for backup or transfer;
 - 🔗 **NEW**: Added Ergo's Integration system to link ExamShelf to Cogito.
 
 

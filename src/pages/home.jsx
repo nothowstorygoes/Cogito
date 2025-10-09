@@ -5,7 +5,6 @@ import TitleBar from "../components/TitleBar";
 import Star from "../components/star";
 import emptyPng from "../assets/empty.png";
 import Spinner from "../components/Spinner";
-import { useTheme } from "../components/themeProvider";
 
 export default function Home() {
     const navigate = useNavigate();
@@ -13,7 +12,7 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [loggerData, setLoggerData] = useState(null);
     const fileInputRef = useRef(null);
-    const { dark } = useTheme();
+    
 
     useEffect(() => {
         const fetchData = async () => {
@@ -71,19 +70,16 @@ export default function Home() {
 
     // Pulsanti: colori più contrastati
     const buttonBase = "rounded-4xl w-35 h-10 font-semibold hover:w-50 cursor-pointer transition-all duration-500";
-    const buttonLight = "bg-[#6331c9] text-white hover:bg-[#4b2496]";
-    const buttonDark = "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0] border border-[#D2D6EF]";
+    const buttonSolid = "bg-primary text-secondary";
 
     return (
-        <main className={`w-screen h-screen overflow-hidden flex justify-center items-center flex-col transition-colors duration-300
-            ${dark ? "bg-[#181825]" : "bg-[#D2D6EF]"}`}>
+        <main className={`w-screen h-screen overflow-hidden flex justify-center items-center flex-col transition-colors duration-300 bg-secondary`}>
             <TitleBar />
             {loading || !userData ? (
                 <Spinner/>
             ) : (
                 <>
-                    <div className={`flex flex-row -mt-25 p-10 justify-between items-center w-full 
-                        ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}>
+                    <div className={`flex flex-row -mt-25 p-10 justify-between items-center w-full text-primary`}>
                         <div className="flex flex-col">
                             <h2 className="text-2xl">Welcome back,  <br /> <b> {userData.name}</b> </h2>
                             <div className="flex flex-row items-center mt-4">
@@ -105,8 +101,7 @@ export default function Home() {
                             onChange={handleFileChange}
                         />
                     </div>
-                    <div className={`flex flex-row justify-between items-start w-full p-10 
-                        ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}>
+                    <div className={`flex flex-row justify-between items-start w-full p-10 text-primary`}>
                         <div className="flex flex-col items-start">
                             <p className="mb-10">Your daily average is <br /> <b>{userData.average}h</b></p>
                             <p className="">You reached your goal <br /> <b>{userData.goalReached} times</b></p>
@@ -117,19 +112,19 @@ export default function Home() {
                     </div>
                     <button
                         onClick={() => navigate("/today")}
-                        className={`absolute top-93 right-10 rounded-4xl w-35 h-10 font-semibold hover:w-45 cursor-pointer transition-all duration-500 ${dark ? buttonDark : buttonLight}`}
+                        className={`absolute top-93 right-10 rounded-4xl w-35 h-10 font-semibold hover:w-42 cursor-pointer transition-all duration-500 ${buttonSolid}`}
                     >
                         Track
                     </button>
                     <button
                         onClick={() => navigate("/statistics")}
-                        className={`absolute top-130 left-10 ${buttonBase} ${dark ? buttonDark : buttonLight}`}
+                        className={`absolute top-130 left-10 ${buttonBase} ${buttonSolid}`}
                     >
                         Statistics
                     </button>
                     <button
                         onClick={() => navigate("/Advanced")}
-                        className={`absolute top-130 right-10 ${buttonBase} ${dark ? buttonDark : buttonLight}`}
+                        className={`absolute top-130 right-10 ${buttonBase} ${buttonSolid}`}
                     >
                         Advanced
                     </button>

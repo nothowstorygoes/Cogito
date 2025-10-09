@@ -73,23 +73,23 @@ export default function GetStarted() {
     };
 
     return (
-        <main className="w-screen h-screen bg-[#D2D6EF] flex flex-col items-center justify-center">
+    <main className="w-screen h-screen bg-secondary flex flex-col items-center justify-center">
             <TitleBar />
             <motion.div
                 animate={{ y: yOffsets[step] }}
                 transition={{ type: "spring", stiffness: 80, damping: 15 }}
                 className="rounded-lg p-8 flex flex-col items-center"
             >
-                <h2 className="text-3xl font-bold mb-6 text-[#6331c9]">Get Started</h2>
+                <h2 className="text-3xl font-bold mb-6 text-primary">Get Started</h2>
                 <form className="w-2/3 flex flex-col gap-6 justify-center items-center" onSubmit={handleSubmit}>
                     {/* Name input */}
                     <div className="flex flex-col items-center w-full">
-                        <label className="block mb-2 text-[#6331c9] font-semibold text-center">
+                        <label className="block mb-2 text-primary font-semibold text-center">
                             How do you wish to be called?
                         </label>
                         <input
                             type="text"
-                            className="text-center w-70 border border-[#a6aae3] rounded px-3 py-2 focus:outline-none"
+                            className="text-center w-70 border border-primary rounded px-3 py-2 focus:outline-none bg-primary-weak text-primary"
                             placeholder="Your name"
                             required
                             value={name}
@@ -103,12 +103,12 @@ export default function GetStarted() {
                     {/* Focus select */}
                     {step >= 1 && (
                         <div className="flex flex-col items-center w-full">
-                            <label className="block mb-2 text-[#6331c9] font-semibold text-center">
+                            <label className="block mb-2 text-primary font-semibold text-center">
                                 What do you want to focus on?
                             </label>
                             <select
                                 ref={focusRef}
-                                className="text-center w-70 border border-[#a6aae3] rounded px-3 py-2 focus:outline-none"
+                                className="text-center w-70 border border-primary rounded px-3 py-2 focus:outline-none bg-primary-weak text-primary"
                                 value={focus}
                                 onChange={handleFocusChange}
                                 required
@@ -126,14 +126,14 @@ export default function GetStarted() {
                     {/* Hours input */}
                     {step === 2 && focus && (
                         <div className="flex flex-col items-center w-full">
-                            <label className="block mb-2 text-[#6331c9] font-semibold text-center">
+                            <label className="block mb-2 text-primary font-semibold text-center">
                                 How many hours per day would you like to dedicate to {FOCUS_OPTIONS.find(opt => opt.value === focus)?.label.toLowerCase()}?
                             </label>
                             <input
                                 type="number"
                                 min="1"
                                 step="0.5"
-                                className="text-center w-70 border border-[#a6aae3] rounded px-3 py-2 focus:outline-none"
+                                className="text-center w-70 border border-primary rounded px-3 py-2 focus:outline-none bg-primary-weak text-primary"
                                 value={hours}
                                 onChange={e => setHours(e.target.value)}
                                 required
@@ -151,7 +151,7 @@ export default function GetStarted() {
                     {step === 2 && focus && hours && (
                         <button
                             type="submit"
-                            className="mt-8 w-30 bg-[#a6aae3] text-[#6331c9] cursor-pointer rounded-4xl py-2 font-semibold hover:bg-[#6331c9] hover:text-white hover:rounded-2xl hover:w-70 transition-all duration-300"
+                            className="mt-8 w-30 bg-primary-weak text-primary cursor-pointer rounded-4xl py-2 font-semibold hover:bg-primary hover:text-secondary hover:rounded-2xl hover:w-70 transition-all duration-300"
                         >
                             Let's start
                         </button>

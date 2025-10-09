@@ -4,7 +4,7 @@ import TitleBar from "../components/TitleBar";
 import Star from "../components/star";
 import { CircularProgressbar } from "react-circular-progressbar";
 import Spinner from "../components/Spinner";
-import { useTheme } from "../components/themeProvider";
+// Theme via CSS variables
 import { DropDownListComponent } from "@syncfusion/ej2-react-dropdowns";
 import "@syncfusion/ej2-base/styles/material.css";
 import "@syncfusion/ej2-react-dropdowns/styles/material.css";
@@ -20,7 +20,7 @@ export default function Today() {
   const [showManualLogPopup, setShowManualLogPopup] = useState(false);
   const [manualMinutes, setManualMinutes] = useState("");
 
-  const { dark } = useTheme();
+  
 
   // Helper to get today's date string (first 5 chars)
   const getTodayShort = () => new Date().toLocaleDateString().slice(0, 5);
@@ -93,17 +93,32 @@ export default function Today() {
     // 2. Add to today time the result
     todayEntry.time += sessionMinutes;
 
-    // 3. Calculate stars for today
+    // 3. Calculate stars for today (base + bonus over-goal)
     const previousStars = todayEntry.stars || 0;
+    let baseStars = 0;
     if (todayEntry.time >= 150 && todayEntry.time < 200) {
-      todayEntry.stars = 1;
+      baseStars = 1;
     } else if (todayEntry.time >= 200 && todayEntry.time < 300) {
-      todayEntry.stars = 2;
+      baseStars = 2;
     } else if (todayEntry.time >= 300) {
-      todayEntry.stars = 3;
-      if (previousStars < 3) {
-        userData.goalReached = (userData.goalReached || 0) + 1;
+      baseStars = 3;
+    }
+
+    // Bonus stars: +1 per +20% over the goal (only if goal is set)
+    const goalMinutes = Number(userData?.hours || 0) * 60;
+    let bonusStars = 0;
+    if (goalMinutes > 0) {
+      const progressRatio = todayEntry.time / goalMinutes;
+      if (progressRatio > 1) {
+        bonusStars = Math.floor((progressRatio - 1) / 0.2);
       }
+    }
+
+    todayEntry.stars = baseStars + bonusStars;
+
+    // Count goalReached the first time the user hits 3 base stars
+    if (baseStars >= 3 && previousStars < 3) {
+      userData.goalReached = (userData.goalReached || 0) + 1;
     }
 
     // 4. Add new stars to allStars (only the difference, no repetitions)
@@ -164,8 +179,12 @@ export default function Today() {
   // Initial load
   useEffect(() => {
     const todayShort = getTodayShort();
-    window.electron.invoke("get-logger-data").then((res) => {
-      let dataArr = Array.isArray(res) ? res : [];
+    Promise.all([
+      window.electron.invoke("get-logger-data"),
+      window.electron.invoke("get-onboarding-data"),
+    ]).then(async ([resLogger, resUser]) => {
+      let dataArr = Array.isArray(resLogger) ? resLogger : [];
+      let userData = resUser ? resUser : {};
       let todayEntry = dataArr.find(
         (entry) => entry.date && entry.date.slice(0, 5) === todayShort
       );
@@ -177,14 +196,52 @@ export default function Today() {
           sessions: [],
         };
         dataArr.push(todayEntry);
-        window.electron.invoke("set-logger-data", dataArr).then(() => {
-          setTodayData(todayEntry);
-          setLoading(false);
-        });
-      } else {
+        await window.electron.invoke("set-logger-data", dataArr);
         setTodayData(todayEntry);
         setLoading(false);
+        return;
       }
+
+      // Recompute stars (base + bonus) from current time and goal
+      const previousStars = todayEntry.stars || 0;
+      let baseStars = 0;
+      if (todayEntry.time >= 150 && todayEntry.time < 200) {
+        baseStars = 1;
+      } else if (todayEntry.time >= 200 && todayEntry.time < 300) {
+        baseStars = 2;
+      } else if (todayEntry.time >= 300) {
+        baseStars = 3;
+      }
+      const goalMinutes = Number(userData?.hours || 0) * 60;
+      let bonusStars = 0;
+      if (goalMinutes > 0) {
+        const progressRatio = todayEntry.time / goalMinutes;
+        if (progressRatio > 1) bonusStars = Math.floor((progressRatio - 1) / 0.2);
+      }
+      const newStars = baseStars + bonusStars;
+
+      if (newStars !== previousStars) {
+        todayEntry.stars = newStars;
+        const idx = dataArr.findIndex(
+          (entry) => entry.date && entry.date.slice(0, 5) === todayShort
+        );
+        if (idx !== -1) dataArr[idx] = todayEntry;
+
+        // Update allStars by the delta
+        const delta = Math.max(0, newStars - previousStars);
+        if (delta > 0) {
+          userData.allStars = (userData.allStars || 0) + delta;
+        }
+        // Count goalReached the first time base >= 3
+        if (baseStars >= 3 && previousStars < 3) {
+          userData.goalReached = (userData.goalReached || 0) + 1;
+        }
+        await window.electron.invoke("set-onboarding-data", userData);
+        await window.electron.invoke("set-logger-data", dataArr);
+      }
+
+      setTodayData({ ...todayEntry });
+      setLoading(false);
     });
   }, []);
 
@@ -204,73 +261,72 @@ export default function Today() {
   }, []);
 
   return (
-    <main
-      className={`w-screen h-screen overflow-hidden flex flex-col items-center justify-center transition-colors duration-300 ${
-        dark ? "bg-[#181825]" : "bg-[#D2D6EF]"
-      }`}
-    >
+    <main className={`w-screen h-screen overflow-hidden flex flex-col items-center justify-center transition-colors duration-300 bg-secondary`}>
       {loading || !todayData ? (
         <Spinner />
       ) : (
         <>
           <TitleBar />
-          <div
-            className={`z-10 text-xl flex flex-row p-10 justify-between items-center w-full ${
-              dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-            } ${integrationOn ? "absolute top-0" : "-mt-10"}`}
-          >
+          <div className={`z-10 text-xl flex flex-row p-10 justify-between items-center w-full text-primary ${integrationOn ? "absolute top-0" : "-mt-10"}`}>
             <h2>Today</h2>
             <p>{todayData.date}</p>
           </div>
-          <div
-            className={`flex flex-row items-center absolute left-9 ${
-              integrationOn ? "top-21" : "top-27 "
-            }`}
-          >
+          <div className={`flex flex-row items-center absolute left-9 ${integrationOn ? "top-21" : "top-27 "}`}>
             <Star achieved />
-            <p
-              className={`text-xl ml-2 font-bold ${
-                dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-              }`}
-            >
+            <p className={`text-xl ml-2 font-bold text-primary`}>
               {todayData.stars}/3
             </p>
           </div>
-          <div
-            className={`w-40 h-40 flex justify-center items-center mx-auto mb-4 ${
-              integrationOn ? "mt-20" : ""
-            }`}
-          >
-            <CircularProgressbar
-              className={dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}
-              value={todayData.time}
-              maxValue={goalHours * 60} // Convert goal hours to minutes
-              text={`${Math.round((todayData.time / (goalHours * 60)) * 100)}%`}
-              styles={{
-                path: {
-                  strokeWidth: "8",
-                  stroke: dark ? "#D2D6EF" : "#6331c9",
-                  strokeLinecap: "round",
-                },
-                text: {
-                  fill: dark ? "#D2D6EF" : "#6331c9",
-                  fontSize: "20px",
-                  fontWeight: "bold",
-                  dominantBaseline: "central",
-                  textAnchor: "middle",
-                },
-              }}
-            />
-          </div>
-          <div
-            className={`absolute right-10 gap-y-4 flex flex-col items-center ${
-              integrationOn ? "top-25" : "top-35"
-            }`}
-          >
-            <Star achieved={todayData.stars >= 1} />
-            <Star achieved={todayData.stars >= 2} />
-            <Star achieved={todayData.stars >= 3} />
-          </div>
+          {(() => {
+            const totalMinutesGoal = goalHours * 60;
+            const safeMax = totalMinutesGoal > 0 ? totalMinutesGoal : 1;
+            const percentText = totalMinutesGoal > 0 ? `${Math.round((todayData.time / totalMinutesGoal) * 100)}%` : "0%";
+            return (
+              <div
+                className={`w-40 h-40 flex justify-center items-center mx-auto mb-4 ${
+                  integrationOn ? "mt-10" : ""
+                }`}
+              >
+                <CircularProgressbar
+                  value={todayData.time}
+                  maxValue={safeMax}
+                  text={percentText}
+                  styles={{
+                    path: {
+                      strokeWidth: "8",
+                      stroke: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#6331c9',
+                      strokeLinecap: "round",
+                    },
+                    text: {
+                      fill: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#6331c9',
+                      fontSize: "20px",
+                      fontWeight: "bold",
+                      dominantBaseline: "central",
+                      textAnchor: "middle",
+                    },
+                  }}
+                />
+              </div>
+            );
+          })()}
+          {(() => {
+            const totalMinutesGoal = goalHours * 60;
+            const progressRatio = totalMinutesGoal > 0 ? Math.min(1, todayData.time / totalMinutesGoal) : 0;
+            const seg = 1 / 3;
+            const clamp01 = (v) => Math.max(0, Math.min(1, v));
+            const starFills = [0, 1, 2].map((i) => clamp01((progressRatio - i * seg) / seg));
+            return (
+              <div
+                className={`absolute right-10 gap-y-4 flex flex-col items-center ${
+                  integrationOn ? "top-21" : "top-35"
+                }`}
+              >
+                <Star fillPercent={starFills[0]} />
+                <Star fillPercent={starFills[1]} />
+                <Star fillPercent={starFills[2]} />
+              </div>
+            );
+          })()}
           {/* Dropdown per la scelta dell'esame se integrazione attiva */}
           {integrationOn && (
             <div className="mb-2">
@@ -279,7 +335,7 @@ export default function Today() {
                 fields={{ text: "name", value: "name" }}
                 value={selectedExam ? selectedExam.name : ""}
                 placeholder="-- Select --"
-                className={`bg-white dark:bg-[#181825] text-[#181825] dark:text-[#D2D6EF] rounded-4xl px-4 py-2 border dark:border-[#D2D6EF] border-[#6331c9]`}
+                className={`bg-primary-weak text-primary rounded-4xl px-4 py-2 border border-primary`}
                 change={(e) => {
                   const exam = examList.find((ex) => ex.name === e.value);
                   setSelectedExam(exam || null);
@@ -290,12 +346,7 @@ export default function Today() {
                 {`
     .e-ddl input::placeholder,
     .e-ddl .e-placeholder {
-      color: #6331c9 !important; /* light mode placeholder */
-      opacity: 1 !important;
-    }
-    .dark .e-ddl input::placeholder,
-    .dark .e-ddl .e-placeholder {
-      color: #D2D6EF !important; /* dark mode placeholder */
+      color: var(--color-primary) !important;
       opacity: 1 !important;
     }
     .e-ddl .e-input-group-icon.e-ddl-icon {
@@ -307,15 +358,10 @@ export default function Today() {
           )}
           <div className="w-full flex justify-center items-center">
             <button
-              className={`cursor-pointer rounded-4xl w-50 h-12 font-bold transition-all duration-500 hover:w-75
-                            ${
-                              dark
-                                ? "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0]"
-                                : "bg-[#6331c9] font-semibold text-white hover:bg-[#4b2496]"
-                            }
+              className={`cursor-pointer rounded-4xl w-50 h-12 font-bold transition-all duration-500 hover:w-75 bg-primary text-secondary hover:opacity-90
                           ${
                             integrationOn && !selectedExam
-                              ? "bg-gray-700 text-white hover:bg-gray-700 hover:!w-50 cursor-not-allowed"
+                ? "bg-grey-500 text-primary hover:!w-50 cursor-not-allowed"
                               : ""
                           }`}
               onClick={() => {
@@ -334,11 +380,7 @@ export default function Today() {
               Open new session
             </button>
           </div>
-          <div
-            className={`flex flex-row items-start w-full p-10 -mt-3 ${
-              dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-            }`}
-          >
+          <div className={`flex flex-row items-start w-full p-10 -mt-3 text-primary`}>
             <div className="flex flex-col">
               <p>
                 Your sessions <br /> so far{" "}
@@ -346,11 +388,7 @@ export default function Today() {
               {todayData.sessions.length > 0 ? (
                 todayData.sessions.slice(0, 3).map((session, index) => (
                   <div key={index} className="flex flex-row items-center mt-2">
-                    <p
-                      className={`text-xl ${
-                        dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-                      } ${session.time > 60 ? "font-bold" : ""}`}
-                    >
+                    <p className={`text-xl text-primary ${session.time > 60 ? "font-bold" : ""}`}>
                       {session.exam
                         ? `${session.time} min`
                         : `${session.time || session} min`}
@@ -366,33 +404,19 @@ export default function Today() {
             </div>
             <div className="flex flex-col ml-48 items-center text-center">
               <p className="text-center"> Total</p>
-              <p
-                className={`text-xl ml-2 font-bold ${
-                  dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-                }`}
-              >
+              <p className={`text-xl ml-2 font-bold text-primary`}>
                 {(todayData.time / 60).toFixed(2)}h
               </p>
             </div>
             <div className="absolute top-122 right-10 gap-x-5 flex flex-row">
             <button
-              className={` w-35 h-10 mt-10 rounded-2xl cursor-pointer transition-all duration-300 hover:w-45
-                            ${
-                              dark
-                                ? "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0] font-semibold"
-                                : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
-                            }`}
+              className={` w-35 h-10 mt-10 rounded-2xl cursor-pointer transition-all duration-300 hover:w-45 bg-primary text-secondary font-semibold`}
               onClick={() => setShowManualLogPopup(true)}
             >
               Log Manually
             </button>
             <button
-              className={` w-25 h-10 mt-10 rounded-2xl cursor-pointer transition-all duration-300 hover:w-30
-                            ${
-                              dark
-                                ? "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0] font-semibold"
-                                : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
-                            }`}
+              className={` w-25 h-10 mt-10 rounded-2xl cursor-pointer transition-all duration-300 hover:w-30 bg-primary text-secondary font-semibold`}
               onClick={() => navigate("/home")}
             >
               Go Back
@@ -404,14 +428,8 @@ export default function Today() {
 
       {/* Manual Log Popup */}
       {showManualLogPopup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div
-            className={`p-8 rounded-xl w-96 shadow-2xl ${
-              dark
-                ? "bg-[#181825] text-[#D2D6EF]"
-                : "bg-[#D2D6EF] text-[#6331c9]"
-            }`}
-          >
+  <div className="fixed inset-0 overlay-secondary flex items-center justify-center z-50">
+          <div className={`p-8 rounded-xl w-96 shadow-2xl bg-secondary text-primary`}>
             <h2 className="text-2xl font-bold mb-4 text-center">
               Log Minutes Manually
             </h2>
@@ -437,11 +455,7 @@ export default function Today() {
               value={manualMinutes}
               onChange={(e) => setManualMinutes(e.target.value)}
               placeholder="Enter minutes..."
-              className={`w-full p-3 rounded-lg border mb-4 text-center outline-none ${
-                dark
-                  ? "bg-[#23263a] border-[#D2D6EF] text-[#D2D6EF] placeholder-[#D2D6EF]/50"
-                  : "bg-white border-[#6331c9] text-[#6331c9] placeholder-[#6331c9]/50"
-              }`}
+              className={`w-full p-3 rounded-lg border mb-4 text-center outline-none bg-primary-weak border-primary text-primary placeholder-primary/50`}
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleManualLog();
@@ -454,21 +468,13 @@ export default function Today() {
 
             <div className="flex gap-4 justify-center">
               <button
-                className={`w-35 h-10 hover:w-40 rounded-2xl font-semibold transition-all duration-300 cursor-pointer ${
-                  dark
-                    ? "bg-[#D2D6EF] text-[#181825]"
-                    : "bg-[#6331c9] text-white"
-                }`}
+                className={`w-35 h-10 hover:w-40 rounded-2xl font-semibold transition-all duration-300 cursor-pointer bg-primary text-secondary`}
                 onClick={handleManualLog}
               >
                 Log Minutes
               </button>
               <button
-                className={`w-25 hover:w-30 rounded-2xl font-semibold transition-all duration-300 cursor-pointer ${
-                  dark
-                    ? "bg-[#23263a] text-[#D2D6EF] border border-[#D2D6EF]"
-                    : "bg-white text-[#6331c9] border border-[#6331c9]"
-                }`}
+                className={`w-25 hover:w-30 rounded-2xl font-semibold transition-all duration-300 cursor-pointer bg-secondary text-primary border border-primary`}
                 onClick={() => {
                   setShowManualLogPopup(false);
                   setManualMinutes("");

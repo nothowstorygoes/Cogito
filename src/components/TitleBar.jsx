@@ -1,12 +1,7 @@
 import React from "react";
-import { useTheme } from "./themeProvider";
 
 export default function TitleBar() {
-    const { dark } = useTheme();
-
-    // Colori dinamici
-    const iconColor = dark ? "#D2D6EF" : "#6331c9";
-    const bgColor = dark ? "#181825" : "#D2D6EF";
+    const iconColor = 'var(--color-primary)';
 
     return (
         <div

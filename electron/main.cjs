@@ -114,6 +114,9 @@ function getOnboardingPath() {
 function getLoggerPath() {
   return path.join(app.getPath('userData'), 'logger.json');
 }
+function getThemePath() {
+  return path.join(app.getPath('userData'), 'theme.json');
+}
 function writeJson(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
   return true;
@@ -208,6 +211,28 @@ ipcMain.handle('get-logger-data', () => readJson(getLoggerPath()));
 ipcMain.handle('set-logger-data', (event, dataArr) => {
   const filePath = getLoggerPath();
   writeJson(filePath, dataArr);
+  return true;
+});
+
+// --- Theme Handlers ---
+ipcMain.handle('get-theme', () => {
+  const file = getThemePath();
+  if (fs.existsSync(file)) {
+    try {
+      return JSON.parse(fs.readFileSync(file, 'utf-8'));
+    } catch (e) {
+      console.warn('[Theme] Failed to parse theme.json, using defaults');
+    }
+  }
+  return { primary: '#6331c9', secondary: '#D2D6EF' };
+});
+
+ipcMain.handle('set-theme', (event, theme) => {
+  const safe = {
+    primary: typeof theme?.primary === 'string' ? theme.primary : '#6331c9',
+    secondary: typeof theme?.secondary === 'string' ? theme.secondary : '#D2D6EF',
+  };
+  fs.writeFileSync(getThemePath(), JSON.stringify(safe, null, 2), 'utf-8');
   return true;
 });
 

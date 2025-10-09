@@ -1,7 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --color-primary: #6331c9;
+  --color-secondary: #D2D6EF;
+}
+
+.text-primary { color: var(--color-primary); }
+.bg-primary { background-color: var(--color-primary); }
+.border-primary { border-color: var(--color-primary); }
+
+/* Weak/tinted variants using CSS color-mix */
+.bg-primary-weak { background-color: color-mix(in srgb, var(--color-primary) 15%, transparent); }
+.bg-secondary-weak { background-color: color-mix(in srgb, var(--color-secondary) 15%, transparent); }
+.overlay-secondary { background-color: color-mix(in srgb, var(--color-secondary) 50%, transparent); }
+
+.text-secondary { color: var(--color-secondary); }
+.bg-secondary { background-color: var(--color-secondary); }
+.border-secondary { border-color: var(--color-secondary); }
 
 
 

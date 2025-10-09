@@ -12,7 +12,6 @@ import {
 } from "chart.js";
 import TitleBar from "../components/TitleBar";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../components/themeProvider";
 
 Chart.register(
   CategoryScale,
@@ -27,8 +26,11 @@ Chart.register(
 export default function ExamStatistics() {
   const [loading, setLoading] = useState(true);
   const [examData, setExamData] = useState([]);
+  const [selectedExamName, setSelectedExamName] = useState(null);
   const navigate = useNavigate();
-  const { dark } = useTheme();
+  const primary = (typeof window !== 'undefined')
+    ? getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#6331c9'
+    : '#6331c9';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,7 +69,12 @@ export default function ExamStatistics() {
           return { name, sessions, total };
         });
 
-        setExamData(dataset);
+        // Inverte l'array per mostrare gli esami in ordine inverso
+        const reversed = dataset.reverse();
+        setExamData(reversed);
+        if (reversed.length > 0) {
+          setSelectedExamName(reversed[0].name);
+        }
       } catch (err) {
         setExamData([]);
       }
@@ -89,10 +96,8 @@ export default function ExamStatistics() {
           label: examName,
           data: sorted.map((s) => s.time),
           fill: true,
-          backgroundColor: dark
-            ? "rgba(210,214,239,0.2)"
-            : "rgba(99,49,201,0.2)",
-          borderColor: dark ? "#D2D6EF" : "#6331c9",
+          backgroundColor: primary + '33', // ~20% opacity
+          borderColor: primary,
           tension: 0.4,
         },
       ],
@@ -114,7 +119,7 @@ export default function ExamStatistics() {
         beginAtZero: true,
         max: 6,
         ticks: {
-          color: dark ? "#D2D6EF" : "#6331c9",
+          color: primary,
           callback: (value) => `${value} `,
           stepSize: 1,
         },
@@ -126,91 +131,63 @@ export default function ExamStatistics() {
   };
 
   return (
-    <main
-      className={`w-screen h-screen flex flex-col items-center transition-colors duration-300 ${
-        dark ? "bg-[#181825]" : "bg-[#D2D6EF]"
-      }`}
-    >
+    <main className={`w-screen h-screen flex flex-col items-center transition-colors duration-300 bg-secondary`}>
       <TitleBar />
       <div className="w-full flex flex-row justify-between items-center px-10 mt-10">
-        <h2
-          className={`text-2xl font-bold ${
-            dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-          }`}
-        >
+        <h2 className={`text-2xl font-semibold text-primary`}>
           Exam Statistics
         </h2>
         <button
           onClick={() => navigate("/inDepth")}
-          className={`rounded-2xl w-35 h-10 transition-all duration-300 cursor-pointer
-            ${
-              dark
-                ? "bg-[#D2D6EF] text-[#181825] font-semibold border border-[#D2D6EF] hover:bg-[#b8bce0]"
-                : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
-            } hover:w-40` }
+          className={`rounded-2xl w-35 h-10 transition-all duration-300 cursor-pointer bg-primary text-secondary font-semibold hover:opacity-90 hover:w-40` }
         >
           Go Back
         </button>
       </div>
       {loading ? (
-        <h2
-          className={`mt-10 text-xl ${
-            dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-          }`}
-        >
+        <h2 className={`mt-10 text-xl text-primary`}>
           Loading...
         </h2>
       ) : examData.length === 0 ? (
-        <p
-          className={`mt-10 text-lg ${
-            dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-          }`}
-        >
+        <p className={`mt-10 text-lg text-primary`}>
           No exam sessions found.
         </p>
       ) : (
-        <div
-          className="flex flex-col gap-20 w-full px-10 mt-4 overflow-y-auto custom-scrollbar"
-          style={{ maxHeight: "80vh" }}
-        >
-          {examData.map((exam, idx) => (
-            <div key={exam.name} className="w-[80%] mx-auto">
-              <h3
-                className={`mb-2 text-xl font-semibold ${
-                  dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-                }`}
-              >
-                {exam.name}
-              </h3>
-              <Line
-                data={getChartData(exam.sessions, exam.name)}
-                options={options}
-              />
-              <div className={`mt-4 mb-10 text-center text-lg ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}>
-                For <span className="font-bold">{exam.name}</span> you spent a total of <span className="font-bold">{(exam.total / 60).toFixed(2)} hours</span>!
-              </div>
-            </div>
-          ))}
-          <style>
-  {`
-    .custom-scrollbar {
-      scrollbar-width: thin;
-      margin-right: 20px;
-      scrollbar-color: ${dark ? "#D2D6EF #181825" : "#6331c9 #D2D6EF"};
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 8px;
-      background: ${dark ? "#181825" : "#D2D6EF"};
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: ${dark ? "#D2D6EF" : "#6331c9"};
-      border-radius: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: ${dark ? "#b8bce0" : "#4b2496"};
-    }
-  `}
-</style>
+        <div className="flex flex-col gap-4 w-full px-10 mt-6">
+          {selectedExamName ? (
+            (() => {
+              const selected = examData.find((e) => e.name === selectedExamName) || examData[0];
+              return (
+                <div className="w-[80%] mx-auto">
+                  <h3 className={`mb-2 text-xl font-semibold text-primary`}>
+                    {selected.name}
+                  </h3>
+                  <Line data={getChartData(selected.sessions, selected.name)} options={options} />
+                  <div className={`mt-4 text-center text-lg text-primary`}>
+                    For <span className="font-semibold">{selected.name}</span> you spent a total of <span className="font-semibold">{(selected.total / 60).toFixed(2)} hours</span>!
+                  </div>
+                </div>
+              );
+            })()
+          ) : null}
+
+          {/* Exam filter buttons */}
+          <div className="w-[80%] mx-auto mt-6 flex flex-wrap gap-3 justify-center">
+            {examData.map((exam) => {
+              const active = exam.name === selectedExamName;
+              return (
+                <button
+                  key={exam.name}
+                  onClick={() => setSelectedExamName(exam.name)}
+                  className={`px-4 h-10 rounded-2xl cursor-pointer font-semibold transition-all duration-200 border 
+                    ${active ? 'bg-primary text-secondary border-primary' : 'bg-secondary text-primary border-primary hover:bg-primary-weak'}`}
+                  title={exam.name}
+                >
+                  {exam.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
       

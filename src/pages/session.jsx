@@ -1,7 +1,6 @@
 import TitleBar from "../components/TitleBar";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useTheme } from "../components/themeProvider";
 
 function formatTime(totalSeconds) {
     // Controllo di sicurezza per evitare NaN
@@ -20,7 +19,6 @@ export default function Session() {
     const location = useLocation();
     const [seconds, setSeconds] = useState(0);
     const [running, setRunning] = useState(false);
-    const { dark } = useTheme();
 
     // Recupera info integrazione e examName da location.state (passato da Today)
     const integrationOn = location.state?.integrationOn || false;
@@ -84,9 +82,9 @@ export default function Session() {
     };
 
     return (
-        <main className={`w-screen h-screen flex flex-col items-center justify-center transition-colors duration-300 ${dark ? "bg-[#181825]" : "bg-[#D2D6EF]"}`}>
+        <main className={`w-screen h-screen flex flex-col items-center justify-center transition-colors duration-300 bg-secondary`}>
             <TitleBar />
-            <div className={`mt-6 text-3xl font-bold ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}>{formatTime(seconds)}</div>
+            <div className={`mt-6 text-3xl font-bold text-primary`}>{formatTime(seconds)}</div>
             <div className="flex flex-row gap-x-3 mt-4 justify-center items-center">
                 {!running && (
                     <button
@@ -95,22 +93,22 @@ export default function Session() {
                         // Se integrazione attiva ma examName non passato, disabilita
                         disabled={integrationOn && !examName}
                     >
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill={dark ? "#D2D6EF" : "#6331c9"}>
-                            <polygon points="10,8 18,12 10,16" fill={dark ? "#D2D6EF" : "#6331c9"} />
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--color-primary)">
+                            <polygon points="10,8 18,12 10,16" fill="var(--color-primary)" />
                         </svg>
                     </button>
                 )}
                 {running && (
                     <button className="cursor-pointer" onClick={handlePause}>
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill={dark ? "#D2D6EF" : "#6331c9"}>
-                            <rect x="8" y="8" width="3" height="8" fill={dark ? "#D2D6EF" : "#6331c9"} />
-                            <rect x="13" y="8" width="3" height="8" fill={dark ? "#D2D6EF" : "#6331c9"} />
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--color-primary)">
+                            <rect x="8" y="8" width="3" height="8" fill="var(--color-primary)" />
+                            <rect x="13" y="8" width="3" height="8" fill="var(--color-primary)" />
                         </svg>
                     </button>
                 )}
                 <button className="mb-1 cursor-pointer" onClick={handleFinish}>
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-                        <polyline points="7,13 11,17 17,9" fill="none" stroke={dark ? "#D2D6EF" : "#6331c9"} strokeWidth="2" />
+                        <polyline points="7,13 11,17 17,9" fill="none" stroke="var(--color-primary)" strokeWidth="2" />
                     </svg>
                 </button>
             </div>

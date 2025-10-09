@@ -1,7 +1,7 @@
 import TitleBar from "../components/TitleBar";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useTheme } from "../components/themeProvider";
+// removed useTheme: theming via CSS variables
 import React, { useEffect } from "react";
 
 export default function Advanced() {
@@ -9,7 +9,6 @@ export default function Advanced() {
   const [exporting, setExporting] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState(""); // "success" or "error"
-  const { dark, toggleTheme } = useTheme();
   const [appVersion, setAppVersion] = useState("");
   const [toggleOn, setToggleOn] = useState(false);
   const [onboardingHours, setOnboardingHours] = useState(0);
@@ -18,9 +17,8 @@ export default function Advanced() {
   // Pulsanti: colori più contrastati
   const buttonBase =
     "rounded-3xl w-35 h-10 font-semibold hover:w-40 cursor-pointer transition-all duration-300";
-  const buttonLight = "bg-[#6331c9] text-white hover:bg-[#4b2496]";
-  const buttonDark =
-    "bg-[#D2D6EF] text-[#181825] hover:bg-[#b8bce0] border border-[#D2D6EF]";
+  const buttonSolid = "bg-primary text-secondary hover:opacity-90 w-40 hover:w-45";
+  const buttonOutline = "bg-secondary text-primary border border-primary hover:bg-primary/10";
 
   useEffect(() => {
     window.electron.examShelfOnboardingExists().then((exists) => {
@@ -107,95 +105,50 @@ export default function Advanced() {
   };
 
   return (
-    <main
-      className={`w-screen h-screen overflow-hidden flex flex-col transition-colors duration-300
-            ${dark ? "bg-[#181825]" : "bg-[#D2D6EF]"}`}
-    >
+    <main className={`w-screen h-screen overflow-hidden flex flex-col transition-colors duration-300 bg-secondary`}>
       <TitleBar />
       <div className="flex flex-col items-center h-full mt-10">
-        <h1
-          className={`text-3xl font-bold mb-4 transition-colors duration-300 ${
-            dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-          }`}
-        >
+        <h1 className={`text-3xl font-semibold mb-4 text-primary`}>
           Advanced Settings
         </h1>
-        <p
-          className={`text-md mb-4 w-96 text-center transition-colors duration-300 ${
-            dark ? "text-[#D2D6EF]" : "text-[#6331c9]"
-          }`}
-        >
+        <p className={`text-md mb-4 w-96 text-center text-primary`}>
           In this section you can import preexisting data or export a backup of
           your log.
         </p>
-        <div className="flex flex-row items-center justify-between w-80 mb-5">
+        <div className="flex flex-row items-center justify-between w-90 mb-5 gap-4">
           <button
-            className={`${buttonBase} ${dark ? buttonDark : buttonLight}`}
+            className={`${buttonBase} ${buttonSolid}`}
             onClick={() => navigate("/import")}
           >
             Import Data
           </button>
           <button
-            className={`${buttonBase} ${dark ? buttonDark : buttonLight}`}
+            className={`${buttonBase} ${buttonSolid}`}
             onClick={handleExport}
             disabled={exporting}
           >
             {exporting ? "Exporting..." : "Export Log"}
           </button>
         </div>
+        <div className="flex flex-row w-90 justify-between items-center"> 
         <button
-            className={`w-40 hover:w-50 ${buttonBase} ${dark ? buttonDark : buttonLight}`}
+            className={` ${buttonBase} ${buttonSolid}`}
             onClick={() => window.electron.invoke('open-app-folder')}
           >
             Open App Folder
-          </button>
-        {/* Single Light/Dark Switch */}
-        <div className="flex flex-row gap-4 items-center mb-6 absolute top-129 left-15 ">
-          <button
-            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-            className={`cursor-pointer p-2 rounded-full border-2 transition-colors duration-200 ${
-              dark
-                ? "border-[#D2D6EF] bg-[#181825]"
-                : "border-[#6331c9] bg-[#D2D6EF]"
-            }`}
-            onClick={() => toggleTheme(!dark)}
+
+        </button>
+        <button
+            className={`${buttonBase} ${buttonSolid}`}
+            onClick={() => navigate('/theme')}
           >
-            {dark ? (
-              // Sun SVG for switching to light mode
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="5" fill="#D2D6EF" />
-                <g stroke="#D2D6EF" strokeWidth="2" strokeLinecap="round">
-                  <line x1="12" y1="2" x2="12" y2="4" />
-                  <line x1="12" y1="20" x2="12" y2="22" />
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                  <line x1="2" y1="12" x2="4" y2="12" />
-                  <line x1="20" y1="12" x2="22" y2="12" />
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                </g>
-              </svg>
-            ) : (
-              // Moon SVG for switching to dark mode
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M21 12.79A9 9 0 0111.21 3a7 7 0 100 14 9 9 0 009.79-4.21z"
-                  fill="#6331c9"
-                />
-              </svg>
-            )}
+            Theme
           </button>
-        </div>
+          </div>
         <div className="mt-8 w-80 flex flex-col items-center">
           {ErgoExists ? (
             <div className="flex items-center gap-2 w-full justify-between">
-              <span
-                className={`text-sm ${
-                  toggleOn
-                    ? "text-[#6331c9] dark:text-[#D2D6EF]"
-                    : "text-gray-400"
-                }`}
-              >
+              <span className={`text-sm ${toggleOn ? 'text-primary' : 'text-gray-400'}`}>
                 Enable Ergo's Integration
               </span>
               <button
@@ -203,9 +156,7 @@ export default function Advanced() {
                 aria-pressed={toggleOn}
                 onClick={() => setToggleOn((v) => !v)}
                 className={`cursor-pointer w-12 h-7 rounded-full transition-colors duration-300 relative
-                  ${
-                    toggleOn ? "bg-[#6331c9] dark:bg-[#D2D6EF]" : "bg-gray-300"
-                  }`}
+                  ${toggleOn ? "bg-primary" : "bg-gray-300"}`}
               >
                 <span
                   className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow transition-all duration-300
@@ -214,7 +165,7 @@ export default function Advanced() {
               </button>
             </div>
           ) : (
-            <h2 className="text-md font-semibold text-[#6331c9] dark:text-[#D2D6EF] text-center">
+            <h2 className="text-md font-semibold text-primary text-center">
               Cogito is part of Ergo Ecosystem,
               <br />
               check out{" "}
@@ -227,7 +178,7 @@ export default function Advanced() {
                     "https://github.com/nothowstorygoes/ExamShelf"
                   );
                 }}
-                className="text-[#6331c9] font-bold"
+                className="text-primary font-semibold"
               >
                 ExamShelf.
               </a>
@@ -239,7 +190,7 @@ export default function Advanced() {
           <div className="flex flex-row items-center justify-between w-full mb-6">
             <label
               htmlFor="onboarding-hours"
-              className={`text-md ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}
+              className={`text-md text-primary`}
             >
               Daily Goal (hours)
             </label>
@@ -260,16 +211,11 @@ export default function Advanced() {
                   }
                 })
               }}
-              className={`rounded-3xl px-4 py-2 w-24 ml-4 border transition-colors duration-300 outline-none
-                ${dark
-                  ? "bg-[#181825] border-[#D2D6EF] text-[#D2D6EF] focus:border-[#6331c9]"
-                  : "bg-white border-[#6331c9] text-[#6331c9] focus:border-[#181825]"
-                }`}
+              className={`rounded-3xl px-4 py-2 w-24 ml-4 border transition-colors duration-300 outline-none bg-primary-weak border-primary text-primary focus:border-primary`}
             />
           </div>
           </div>
-
-        <div className="absolute top-110 mx-auto text-sm text-[#6331c9] dark:text-[#D2D6EF]">
+        <div className="absolute top-110 mx-auto text-sm text-primary">
           v.{appVersion}
         </div>
         {/* Status Message */}
@@ -286,9 +232,7 @@ export default function Advanced() {
         )}
         <button></button>
         <button
-          className={`${buttonBase} ${
-            dark ? buttonDark : buttonLight
-          } absolute top-130 right-10`}
+          className={`${buttonBase} ${buttonOutline} absolute top-130 right-10`}
           onClick={() => navigate("/home")}
         >
           Go Back

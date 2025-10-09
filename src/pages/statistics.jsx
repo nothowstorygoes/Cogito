@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Spinner from "../components/Spinner";
 import Star from "../components/star";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../components/themeProvider";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -12,7 +11,6 @@ export default function Statistics() {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(0);
   const navigate = useNavigate();
-  const { dark } = useTheme();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,11 +30,7 @@ export default function Statistics() {
 
   if (loading || !data) {
     return (
-      <main
-        className={`w-screen h-screen ${
-          dark ? "bg-[#181825]" : "bg-[#D2D6EF]"
-        } overflow-hidden flex flex-col justify-center items-center`}
-      >
+      <main className={`w-screen h-screen bg-secondary overflow-hidden flex flex-col justify-center items-center`}>
         <TitleBar />
         <Spinner />
       </main>
@@ -48,42 +42,41 @@ export default function Statistics() {
   const pageData = data.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
   return (
-    <main
-      className={`w-screen h-screen ${
-        dark ? "bg-[#181825]" : "bg-[#D2D6EF]"
-      } overflow-hidden flex flex-col items-center`}
-    >
+    <main className={`w-screen h-screen bg-secondary overflow-hidden flex flex-col items-center`}>
       <TitleBar />
       <div
         className={`flex flex-row justify-between w-100 items-center px-10 pt-6 mt-8`}
       >
         <button
-          className={`cursor-pointer text-2xl px-2 py-1 text-center rounded-4xl
-                        ${
-                          dark
-                            ? "bg-[#D2D6EF] text-[#181825] border border-[#D2D6EF] hover:bg-[#b8bce0]"
-                            : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
-                        }
-                        disabled:opacity-50 transition-all duration-300`}
+          className={`cursor-pointer p-2 text-center hover:opacity-80 disabled:opacity-40 transition-all duration-200 bg-transparent rounded-none`}
           onClick={() => setPage(page - 1)}
           disabled={page === 0}
           style={page === 0 ? { opacity: 0.5, cursor: "not-allowed" } : {}}
         >
-          &#8592;
+          <span
+            aria-hidden
+            style={{
+              width: 28,
+              height: 28,
+              display: 'inline-block',
+              backgroundColor: 'var(--color-primary)',
+              WebkitMaskImage: 'url(/arrowL.svg)',
+              maskImage: 'url(/arrowL.svg)',
+              WebkitMaskRepeat: 'no-repeat',
+              maskRepeat: 'no-repeat',
+              WebkitMaskSize: 'contain',
+              maskSize: 'contain',
+              WebkitMaskPosition: 'center',
+              maskPosition: 'center',
+            }}
+          />
+          <span className="sr-only">Previous page</span>
         </button>
-        <span
-          className={`font-bold ${dark ? "text-[#D2D6EF]" : "text-[#6331c9]"}`}
-        >
+        <span className={`font-bold text-primary`}>
           Page {page + 1} of {totalPages}
         </span>
         <button
-          className={`cursor-pointer text-2xl px-2 py-1 text-center rounded-4xl
-                        ${
-                          dark
-                            ? "bg-[#D2D6EF] text-[#181825] border border-[#D2D6EF] hover:bg-[#b8bce0]"
-                            : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
-                        }
-                        disabled:opacity-50 transition-all duration-300`}
+          className={`cursor-pointer p-2 text-center hover:opacity-80 disabled:opacity-40 transition-all duration-200 bg-transparent rounded-none`}
           onClick={() => setPage(page + 1)}
           disabled={page >= totalPages - 1}
           style={
@@ -92,7 +85,24 @@ export default function Statistics() {
               : {}
           }
         >
-          &#8594;
+          <span
+            aria-hidden
+            style={{
+              width: 28,
+              height: 28,
+              display: 'inline-block',
+              backgroundColor: 'var(--color-primary)',
+              WebkitMaskImage: 'url(/arrowR.svg)',
+              maskImage: 'url(/arrowR.svg)',
+              WebkitMaskRepeat: 'no-repeat',
+              maskRepeat: 'no-repeat',
+              WebkitMaskSize: 'contain',
+              maskSize: 'contain',
+              WebkitMaskPosition: 'center',
+              maskPosition: 'center',
+            }}
+          />
+          <span className="sr-only">Next page</span>
         </button>
       </div>
       <div className="grid grid-cols-3 gap-6 p-10 w-120">
@@ -100,12 +110,7 @@ export default function Statistics() {
           pageData.map((entry, index) => (
             <div
               key={startIdx + index}
-              className={`rounded-xl p-4 flex flex-col items-center justify-center transition-colors duration-300
-                                ${
-                                  dark
-                                    ? "bg-[#23263a] text-[#D2D6EF]"
-                                    : "bg-white text-[#6331c9]"
-                                }`}
+              className={`rounded-xl p-4 flex flex-col items-center justify-center transition-colors duration-300 bg-primary-weak text-primary`}
             >
               <div className="text-md font-bold">{entry.date}</div>
               <div className="text-sm mt-2">
@@ -118,21 +123,15 @@ export default function Statistics() {
             </div>
           ))
         ) : (
-            <p className="text-xl dark:text-[#d2d6ef] text-[#6631c9] text-center w-100 mx-auto">
+            <p className="text-xl text-primary text-center w-100 mx-auto">
               No statistics available.
             </p>
         )}
       </div>
-      <div className="absolute flex flex-col gap-y-3 top-103 right-5">
+      <div className="absolute flex flex-col gap-y-3 top-106 right-5">
         <button
           onClick={() => navigate("/inDepth")}
-          className={`w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer
-                        ${
-                          dark
-                            ? "font-semibold bg-[#D2D6EF] text-[#181825] border border-[#D2D6EF] hover:bg-[#b8bce0]"
-                            : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
-                        }
-                        hover:h-14
+          className={`w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer bg-primary font-semibold text-secondary hover:opacity-90 hover:h-14
                         ${
                           data.length <= 2
                             ? "!bg-gray-400 text-gray-200 cursor-not-allowed hover:!h-10 "
@@ -144,12 +143,7 @@ export default function Statistics() {
         </button>
         <button
           onClick={() => navigate("/home")}
-          className={`w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer
-                        ${
-                          dark
-                            ? "font-semibold bg-[#D2D6EF] text-[#181825] border border-[#D2D6EF] hover:bg-[#b8bce0]"
-                            : "bg-[#6331c9] text-white hover:bg-[#4b2496]"
-                        } hover:h-14`}
+          className={`w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer bg-primary text-secondary font-semibold hover:opacity-90 hover:h-14`}
         >
           Go Back
         </button>
