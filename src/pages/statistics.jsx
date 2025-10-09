@@ -3,10 +3,22 @@ import { useEffect, useState } from "react";
 import Spinner from "../components/Spinner";
 import Star from "../components/star";
 import { useNavigate } from "react-router-dom";
+import arrowLRaw from "../assets/arrowL.svg?raw";
+import arrowRRaw from "../assets/arrowR.svg?raw";
 
 const ITEMS_PER_PAGE = 8;
 
 export default function Statistics() {
+  // Prepare colorizable, sized SVGs from raw content
+  const fixSvg = (raw) => {
+    if (!raw) return "";
+    return raw
+      .replace(/width=\"[^\"]+\"/i, 'width="28"')
+      .replace(/height=\"[^\"]+\"/i, 'height="28"')
+      .replace(/fill:\s*#?[0-9a-fA-F]{3,6}/gi, 'fill:currentColor');
+  };
+  const arrowLSvg = fixSvg(arrowLRaw);
+  const arrowRSvg = fixSvg(arrowRRaw);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [page, setPage] = useState(0);
@@ -16,7 +28,6 @@ export default function Statistics() {
     const fetchData = async () => {
       try {
         const stats = await window.electron.invoke("get-logger-data");
-        // Inverte l'ordine dei dati per mostrare le entry più recenti per prime
         const reversedStats = Array.isArray(stats) ? [...stats].reverse() : [];
         setData(reversedStats);
       } catch (error) {
@@ -44,9 +55,7 @@ export default function Statistics() {
   return (
     <main className={`w-screen h-screen bg-secondary overflow-hidden flex flex-col items-center`}>
       <TitleBar />
-      <div
-        className={`flex flex-row justify-between w-100 items-center px-10 pt-6 mt-8`}
-      >
+      <div className={`flex flex-row justify-between w-100 items-center px-10 pt-6 mt-8`}>
         <button
           className={`cursor-pointer p-2 text-center hover:opacity-80 disabled:opacity-40 transition-all duration-200 bg-transparent rounded-none`}
           onClick={() => setPage(page - 1)}
@@ -55,20 +64,9 @@ export default function Statistics() {
         >
           <span
             aria-hidden
-            style={{
-              width: 28,
-              height: 28,
-              display: 'inline-block',
-              backgroundColor: 'var(--color-primary)',
-              WebkitMaskImage: 'url(/arrowL.svg)',
-              maskImage: 'url(/arrowL.svg)',
-              WebkitMaskRepeat: 'no-repeat',
-              maskRepeat: 'no-repeat',
-              WebkitMaskSize: 'contain',
-              maskSize: 'contain',
-              WebkitMaskPosition: 'center',
-              maskPosition: 'center',
-            }}
+            className="inline-block"
+            style={{ color: "var(--color-primary)" }}
+            dangerouslySetInnerHTML={{ __html: arrowLSvg }}
           />
           <span className="sr-only">Previous page</span>
         </button>
@@ -80,27 +78,14 @@ export default function Statistics() {
           onClick={() => setPage(page + 1)}
           disabled={page >= totalPages - 1}
           style={
-            page >= totalPages - 1
-              ? { opacity: 0.5, cursor: "not-allowed" }
-              : {}
+            page >= totalPages - 1 ? { opacity: 0.5, cursor: "not-allowed" } : {}
           }
         >
           <span
             aria-hidden
-            style={{
-              width: 28,
-              height: 28,
-              display: 'inline-block',
-              backgroundColor: 'var(--color-primary)',
-              WebkitMaskImage: 'url(/arrowR.svg)',
-              maskImage: 'url(/arrowR.svg)',
-              WebkitMaskRepeat: 'no-repeat',
-              maskRepeat: 'no-repeat',
-              WebkitMaskSize: 'contain',
-              maskSize: 'contain',
-              WebkitMaskPosition: 'center',
-              maskPosition: 'center',
-            }}
+            className="inline-block"
+            style={{ color: "var(--color-primary)" }}
+            dangerouslySetInnerHTML={{ __html: arrowRSvg }}
           />
           <span className="sr-only">Next page</span>
         </button>
@@ -113,9 +98,7 @@ export default function Statistics() {
               className={`rounded-xl p-4 flex flex-col items-center justify-center transition-colors duration-300 bg-primary-weak text-primary`}
             >
               <div className="text-md font-bold">{entry.date}</div>
-              <div className="text-sm mt-2">
-                {(entry.time / 60).toFixed(1)}h
-              </div>
+              <div className="text-sm mt-2">{(entry.time / 60).toFixed(1)}h</div>
               <div className="mt-1 text-sm flex flex-row items-center">
                 <Star achieved={entry.stars !== 0} size={22} />
                 &nbsp;{entry.stars}
@@ -123,20 +106,15 @@ export default function Statistics() {
             </div>
           ))
         ) : (
-            <p className="text-xl text-primary text-center w-100 mx-auto">
-              No statistics available.
-            </p>
+          <p className="text-xl text-primary text-center w-100 mx-auto">No statistics available.</p>
         )}
       </div>
       <div className="absolute flex flex-col gap-y-3 top-106 right-5">
         <button
           onClick={() => navigate("/inDepth")}
-          className={`w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer bg-primary font-semibold text-secondary hover:opacity-90 hover:h-14
-                        ${
-                          data.length <= 2
-                            ? "!bg-gray-400 text-gray-200 cursor-not-allowed hover:!h-10 "
-                            : ""
-                        }`}
+          className={`w-30 h-10 rounded-2xl transition-all duration-300 cursor-pointer bg-primary font-semibold text-secondary hover:opacity-90 hover:h-14 ${
+            data.length <= 2 ? "!bg-gray-400 text-gray-200 cursor-not-allowed hover:!h-10 " : ""
+          }`}
           disabled={data.length <= 2}
         >
           In-Depth
