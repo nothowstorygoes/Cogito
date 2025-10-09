@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="https://github.com/user-attachments/assets/125cf250-859e-4eed-ade0-0e6592eba7e1" width="120"> 
+  <img src="https://github.com/user-attachments/assets/0b089b9e-6781-4f46-bf26-f1cfe21e68a1" width="120"> 
 </div>
 
 <h1 align="center">Cogito</h1>
